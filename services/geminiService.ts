@@ -2,12 +2,10 @@ import { GoogleGenAI, Modality, Type, GenerateContentResponse } from "@google/ge
 import { BehanceContent } from '../types';
 
 if (!process.env.API_KEY) {
-  // This is a placeholder for development. In a real environment, the key is expected to be set.
-  console.warn("API_KEY environment variable not set. Using a placeholder. Please provide a valid API key for the app to function.");
-  process.env.API_KEY = "YOUR_API_KEY_HERE";
+  throw new Error("API_KEY environment variable not set. Please create a .env file and add your API key.");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
