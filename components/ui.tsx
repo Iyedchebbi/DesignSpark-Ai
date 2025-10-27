@@ -1,5 +1,5 @@
 import React from 'react';
-import { Palette, Image, Send, FileUp, Languages, Sun, Moon, Monitor, BrainCircuit, BotMessageSquare, Sparkles, Copy, Check, Download, Share2, Wand2, RefreshCw, RotateCcw, ClipboardSignature, Blend } from 'lucide-react';
+import { Palette, Image, Send, FileUp, Languages, Sun, Moon, Monitor, BrainCircuit, BotMessageSquare, Sparkles, Copy, Check, Download, Share2, Wand2, RefreshCw, RotateCcw, ClipboardSignature, Blend, Crop, Trash2 } from 'lucide-react';
 
 export const Icons = {
   Design: Palette,
@@ -22,6 +22,8 @@ export const Icons = {
   Undo: RotateCcw,
   Deconstruct: ClipboardSignature,
   ApplyStyle: Blend,
+  Crop,
+  RemoveBg: Trash2,
 };
 
 interface CardProps {

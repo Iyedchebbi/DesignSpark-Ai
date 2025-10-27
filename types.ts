@@ -1,6 +1,7 @@
 export enum Page {
   DesignAnalysis = 'DesignAnalysis',
   ImageGeneration = 'ImageGeneration',
+  ImageEdition = 'ImageEdition',
   BehancePublisher = 'BehancePublisher',
 }
 

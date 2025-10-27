@@ -11,12 +11,14 @@ const translations = {
     'Developed by Iyed CHEBBI': 'تطوير إياد الشابي',
     'Design Analysis': 'تحليل التصميم',
     'Image Generation': 'توليد الصور',
+    'Image Edition': 'تعديل الصور',
     'Behance Publisher': 'النشر على Behance',
     'Upload your design': 'ارفع تصميمك',
     'Analyze Design': 'حلّل التصميم',
     'Enter a prompt to generate an image...': 'ادخل وصف لتوليد صورة...',
     'Generate Image': 'ولّد الصورة',
     'Upload an image to modify': 'ارفع صورة لتعديلها',
+    'Upload an image to edit': 'ارفع صورة لتعديلها',
     'Enter a prompt to modify the image...': 'ادخل وصف لتعديل الصورة...',
     'Modify Image': 'عدّل الصورة',
     'Upload your final design': 'ارفع تصميمك النهائي',
@@ -31,9 +33,11 @@ const translations = {
     'Copied!': 'تم النسخ!',
     'Design Analysis & Refinement': 'تحليل وتحسين التصميم',
     'AI Image Generation & Modification': 'توليد وتعديل الصور بالذكاء الاصطناعي',
+    'AI-Powered Image Editing': 'تعديل الصور بالذكاء الاصطناعي',
     'Professional Behance Publishing': 'النشر الاحترافي على Behance',
     'Get expert feedback on your designs to elevate your work.': 'احصل على تقييم احترافي لتصاميمك لتحسين عملك.',
     'Create stunning visuals from text or modify existing images.': 'أنشئ صورًا مذهلة من النصوص أو قم بتعديل صورك الحالية.',
+    'Easily remove backgrounds or change aspect ratios with AI assistance.': 'أزل الخلفيات بسهولة أو غيّر أبعاد الصور بمساعدة الذكاء الاصطناعي.',
     'Generate professional titles, descriptions, and keywords for Behance.': 'أنشئ عناوين وأوصاف وكلمات مفتاحية احترافية لمنصة Behance.',
     'Light': 'فاتح',
     'Dark': 'داكن',
@@ -41,6 +45,7 @@ const translations = {
     'Update the design': 'تحديث التصميم',
     'Updated Design': 'التصميم المحدث',
     'Download Updated Image': 'تحميل الصورة المحدثة',
+    'Download Edited Image': 'تحميل الصورة المعدلة',
     'Start Over': 'ابدأ من جديد',
     'Undo': 'تراجع',
     'Share to Behance': 'انشر على Behance',
@@ -66,6 +71,11 @@ const translations = {
     'Get detailed feedback and AI-driven refinements for your design.': 'احصل على تقييم مفصل وتحسينات مدفوعة بالذكاء الاصطناعي لتصميمك.',
     'Extract a creative prompt from a reference design or apply its style to yours.': 'استخرج وصفًا إبداعيًا من تصميم مرجعي أو طبّق أسلوبه على تصميمك.',
     'Your deconstructed prompt will appear here.': 'سيظهر هنا الوصف المستخرج من التصميم المرجعي.',
+    'Remove Background': 'إزالة الخلفية',
+    'Aspect Ratio': 'نسبة الأبعاد',
+    'Original': 'الأصلي',
+    'Edited Result': 'النتيجة المعدلة',
+    'Your edited image will appear here.': 'ستظهر صورتك المعدلة هنا.',
   },
   en: {
     'Design Spark AI': 'Design Spark AI',
@@ -73,12 +83,14 @@ const translations = {
     'Developed by Iyed CHEBBI': 'Developed by Iyed CHEBBI',
     'Design Analysis': 'Design Analysis',
     'Image Generation': 'Image Generation',
+    'Image Edition': 'Image Edition',
     'Behance Publisher': 'Behance Publisher',
     'Upload your design': 'Upload your design',
     'Analyze Design': 'Analyze Design',
     'Enter a prompt to generate an image...': 'Enter a prompt to generate an image...',
     'Generate Image': 'Generate Image',
     'Upload an image to modify': 'Upload an image to modify',
+    'Upload an image to edit': 'Upload an image to edit',
     'Enter a prompt to modify the image...': 'Enter a prompt to modify the image...',
     'Modify Image': 'Modify Image',
     'Upload your final design': 'Upload your final design',
@@ -93,9 +105,11 @@ const translations = {
     'Copied!': 'Copied!',
     'Design Analysis & Refinement': 'Design Analysis & Refinement',
     'AI Image Generation & Modification': 'AI Image Generation & Modification',
+    'AI-Powered Image Editing': 'AI-Powered Image Editing',
     'Professional Behance Publishing': 'Professional Behance Publishing',
     'Get expert feedback on your designs to elevate your work.': 'Get expert feedback on your designs to elevate your work.',
     'Create stunning visuals from text or modify existing images.': 'Create stunning visuals from text or modify existing images.',
+    'Easily remove backgrounds or change aspect ratios with AI assistance.': 'Easily remove backgrounds or change aspect ratios with AI assistance.',
     'Generate professional titles, descriptions, and keywords for Behance.': 'Generate professional titles, descriptions, and keywords for Behance.',
     'Light': 'Light',
     'Dark': 'Dark',
@@ -103,6 +117,7 @@ const translations = {
     'Update the design': 'Update the design',
     'Updated Design': 'Updated Design',
     'Download Updated Image': 'Download Updated Image',
+    'Download Edited Image': 'Download Edited Image',
     'Start Over': 'Start Over',
     'Undo': 'Undo',
     'Share to Behance': 'Share to Behance',
@@ -128,6 +143,11 @@ const translations = {
     'Get detailed feedback and AI-driven refinements for your design.': 'Get detailed feedback and AI-driven refinements for your design.',
     'Extract a creative prompt from a reference design or apply its style to yours.': 'Extract a creative prompt from a reference design or apply its style to yours.',
     'Your deconstructed prompt will appear here.': 'Your deconstructed prompt will appear here.',
+    'Remove Background': 'Remove Background',
+    'Aspect Ratio': 'Aspect Ratio',
+    'Original': 'Original',
+    'Edited Result': 'Edited Result',
+    'Your edited image will appear here.': 'Your edited image will appear here.',
   },
   fr: {
     'Design Spark AI': 'Design Spark IA',
@@ -135,12 +155,14 @@ const translations = {
     'Developed by Iyed CHEBBI': 'Développé par Iyed CHEBBI',
     'Design Analysis': 'Analyse de Design',
     'Image Generation': 'Génération d\'Images',
+    'Image Edition': 'Édition d\'Image',
     'Behance Publisher': 'Publication Behance',
     'Upload your design': 'Téléchargez votre design',
     'Analyze Design': 'Analyser le Design',
     'Enter a prompt to generate an image...': 'Entrez une description pour générer une image...',
     'Generate Image': 'Générer l\'Image',
     'Upload an image to modify': 'Téléchargez une image à modifier',
+    'Upload an image to edit': 'Téléchargez une image pour la modifier',
     'Enter a prompt to modify the image...': 'Entrez une description pour modifier l\'image...',
     'Modify Image': 'Modifier l\'Image',
     'Upload your final design': 'Téléchargez votre design final',
@@ -155,9 +177,11 @@ const translations = {
     'Copied!': 'Copié !',
     'Design Analysis & Refinement': 'Analyse et Raffinement de Design',
     'AI Image Generation & Modification': 'Génération et Modification d\'Images par IA',
+    'AI-Powered Image Editing': 'Édition d\'Images par IA',
     'Professional Behance Publishing': 'Publication Professionnelle sur Behance',
     'Get expert feedback on your designs to elevate your work.': 'Obtenez des commentaires experts sur vos designs pour améliorer votre travail.',
     'Create stunning visuals from text or modify existing images.': 'Créez des visuels époustouflants à partir de texte ou modifiez des images existantes.',
+    'Easily remove backgrounds or change aspect ratios with AI assistance.': 'Supprimez facilement les arrière-plans ou modifiez les formats d\'image avec l\'aide de l\'IA.',
     'Generate professional titles, descriptions, and keywords for Behance.': 'Générez des titres, des descriptions et des mots-clés professionnels pour Behance.',
     'Light': 'Clair',
     'Dark': 'Sombre',
@@ -165,6 +189,7 @@ const translations = {
     'Update the design': 'Mettre à jour le design',
     'Updated Design': 'Design Mis à Jour',
     'Download Updated Image': 'Télécharger l\'Image Mise à Jour',
+    'Download Edited Image': 'Télécharger l\'Image Modifiée',
     'Start Over': 'Recommencer',
     'Undo': 'Annuler',
     'Share to Behance': 'Partager sur Behance',
@@ -190,6 +215,11 @@ const translations = {
     'Get detailed feedback and AI-driven refinements for your design.': 'Obtenez des commentaires détaillés et des améliorations basées sur l\'IA pour votre design.',
     'Extract a creative prompt from a reference design or apply its style to yours.': 'Extrayez un prompt créatif d\'un design de référence ou appliquez son style au vôtre.',
     'Your deconstructed prompt will appear here.': 'Votre prompt déconstruit apparaîtra ici.',
+    'Remove Background': 'Supprimer l\'Arrière-plan',
+    'Aspect Ratio': 'Format d\'Image',
+    'Original': 'Original',
+    'Edited Result': 'Résultat Modifié',
+    'Your edited image will appear here.': 'Votre image modifiée apparaîtra ici.',
   },
 };
 
@@ -624,6 +654,117 @@ const ImageGenerationPage: React.FC = () => {
     );
 };
 
+const ImageEditionPage: React.FC = () => {
+    const { t } = useAppContext();
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [editedImageUrl, setEditedImageUrl] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [activeRatio, setActiveRatio] = useState<string | null>(null);
+
+    const aspectRatios = [
+        { id: '1:1', name: '1:1 (Square)' },
+        { id: '16:9', name: '16:9 (Widescreen)' },
+        { id: '4:3', name: '4:3 (Standard)' },
+        { id: '9:16', name: '9:16 (Story)' },
+    ];
+
+    const handleImageSelect = (file: File) => {
+        setImageFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+        setEditedImageUrl(null);
+        setError(null);
+        setActiveRatio(null);
+    };
+
+    const handleReset = () => {
+        setImageFile(null);
+        setPreviewUrl(null);
+        setEditedImageUrl(null);
+        setIsLoading(false);
+        setError(null);
+        setActiveRatio(null);
+    };
+
+    const handleDownload = () => {
+        if (!editedImageUrl) return;
+        const link = document.createElement('a');
+        link.href = editedImageUrl;
+        link.download = 'edited-image.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const performEdit = async (prompt: string) => {
+        if (!imageFile) return;
+        setIsLoading(true);
+        setError(null);
+        setEditedImageUrl(null);
+        try {
+            const imageBase64 = await fileToBase64(imageFile);
+            const result = await modifyImage(prompt, imageBase64, imageFile.type);
+            setEditedImageUrl(`data:image/png;base64,${result}`);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : t('An error occurred'));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRemoveBackground = () => {
+        setActiveRatio(null);
+        performEdit("Remove the background of this image, making it transparent. The main subject should be perfectly isolated.");
+    };
+
+    const handleAspectRatioChange = (ratio: string) => {
+        setActiveRatio(ratio);
+        performEdit(`Reframe this image to a ${ratio} aspect ratio. Ensure the main subject is centered and well-composed within the new frame.`);
+    };
+
+    return (
+        <div className="space-y-6 animate-fade-in-up">
+            <div className="text-center md:text-left">
+                <h1 className="text-4xl font-bold text-slate-800 dark:text-white">{t('AI-Powered Image Editing')}</h1>
+                <p className="text-slate-600 dark:text-slate-300 mt-2">{t('Easily remove backgrounds or change aspect ratios with AI assistance.')}</p>
+            </div>
+            <Card className="p-6 relative">
+                {imageFile && <button onClick={handleReset} className="absolute top-4 right-4 p-2 rounded-full bg-white/50 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10" title={t('Start Over')}><Icons.Refresh className="w-5 h-5" /></button>}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <div className="space-y-4">
+                        <ImageUpload onImageSelect={handleImageSelect} previewUrl={previewUrl} text={t('Upload an image to edit')} />
+                        <div className="space-y-2">
+                             <Button onClick={handleRemoveBackground} disabled={!imageFile || isLoading} isLoading={isLoading && !activeRatio} className="w-full h-12 text-base">
+                                <Icons.RemoveBg className="w-5 h-5 mr-2" /> {t('Remove Background')}
+                            </Button>
+                        </div>
+                         <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('Aspect Ratio')}</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                {aspectRatios.map(ratio => (
+                                    <Button key={ratio.id} onClick={() => handleAspectRatioChange(ratio.id)} disabled={!imageFile || isLoading} isLoading={isLoading && activeRatio === ratio.id} variant="secondary" className="w-full h-12 text-base">
+                                        <Icons.Crop className="w-5 h-5 mr-2" /> {ratio.name}
+                                    </Button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="min-h-[20rem] flex flex-col">
+                        <h3 className="font-semibold mb-2 text-center">{t('Edited Result')}</h3>
+                        <Card className="bg-slate-50 dark:bg-slate-900/50 w-full aspect-square flex items-center justify-center overflow-hidden">
+                            {isLoading ? <Spinner /> : editedImageUrl ? <img src={editedImageUrl} alt="Edited result" className="object-contain w-full h-full" /> : <div className="text-slate-400 text-center p-4">{t('Your edited image will appear here.')}</div>}
+                        </Card>
+                        {editedImageUrl && !isLoading && <Button onClick={handleDownload} className="w-full mt-4 h-12 text-base"><Icons.Download className="w-5 h-5 mr-2" /> {t('Download Edited Image')}</Button>}
+                    </div>
+                </div>
+                {error && <div className="mt-4"><ErrorDisplay message={error} onDismiss={() => setError(null)} /></div>}
+            </Card>
+        </div>
+    );
+};
+
+
 const BehancePublisherPage: React.FC = () => {
     const { t } = useAppContext();
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -751,8 +892,9 @@ const Sidebar: React.FC = () => {
               <p className="text-xs text-slate-500 dark:text-slate-400 px-3 -mt-2 overflow-hidden whitespace-nowrap transition-all duration-300 w-0 group-hover:w-full lg:w-full">{t('Your AI partner for creative design.')}</p>
             </div>
             <nav className="flex-1 space-y-2 pt-4">
-                <NavItem page={Page.DesignAnalysis} icon={Icons.Design} label={t('Design Analysis')} />
+                <NavItem page={Page.DesignAnalysis} icon={Icons.Analyze} label={t('Design Analysis')} />
                 <NavItem page={Page.ImageGeneration} icon={Icons.ImageGen} label={t('Image Generation')} />
+                <NavItem page={Page.ImageEdition} icon={Icons.Wand} label={t('Image Edition')} />
                 <NavItem page={Page.BehancePublisher} icon={Icons.Behance} label={t('Behance Publisher')} />
             </nav>
             <div className="space-y-2">
@@ -769,8 +911,9 @@ const Sidebar: React.FC = () => {
 const BottomNav: React.FC = () => {
     const { t, page: currentPage, setPage } = useAppContext();
     const navItems = [
-      { page: Page.DesignAnalysis, icon: Icons.Design, label: t('Design Analysis') },
+      { page: Page.DesignAnalysis, icon: Icons.Analyze, label: t('Design Analysis') },
       { page: Page.ImageGeneration, icon: Icons.ImageGen, label: t('Image Generation') },
+      { page: Page.ImageEdition, icon: Icons.Wand, label: t('Image Edition') },
       { page: Page.BehancePublisher, icon: Icons.Behance, label: t('Behance Publisher') },
     ];
     return (
@@ -882,6 +1025,7 @@ function MainApp() {
         switch (page) {
             case Page.DesignAnalysis: return <DesignAnalysisPage />;
             case Page.ImageGeneration: return <ImageGenerationPage />;
+            case Page.ImageEdition: return <ImageEditionPage />;
             case Page.BehancePublisher: return <BehancePublisherPage />;
             default: return <DesignAnalysisPage />;
         }
