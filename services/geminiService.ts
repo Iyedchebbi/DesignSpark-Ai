@@ -1,7 +1,19 @@
 import { GoogleGenAI, Modality, Type, GenerateContentResponse } from "@google/genai";
 import { BehanceContent } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazily initialize the AI client to prevent app crash on start if API key is missing.
+let ai: GoogleGenAI | null = null;
+
+const getAiClient = (): GoogleGenAI => {
+    if (!process.env.API_KEY) {
+        throw new Error("API Key is missing. Please ensure the API_KEY environment variable is set for the application to function.");
+    }
+    if (!ai) {
+        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    }
+    return ai;
+};
+
 
 export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -14,6 +26,7 @@ export const fileToBase64 = (file: File): Promise<string> => {
 
 export const analyzeDesign = async (imageBase64: string, mimeType: string, language: string): Promise<string> => {
   try {
+    const aiClient = getAiClient();
     const languageMap: { [key: string]: string } = {
       en: 'English',
       fr: 'French',
@@ -21,7 +34,7 @@ export const analyzeDesign = async (imageBase64: string, mimeType: string, langu
     };
     const targetLanguage = languageMap[language] || 'English';
 
-    const response = await ai.models.generateContent({
+    const response = await aiClient.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: {
             parts: [
@@ -33,14 +46,16 @@ export const analyzeDesign = async (imageBase64: string, mimeType: string, langu
     return response.text;
   } catch (error) {
     console.error("Error analyzing design:", error);
-    return "An error occurred while analyzing the design. Please check the console for details.";
+    const errorMessage = error instanceof Error ? error.message : "An error occurred while analyzing the design.";
+    throw new Error(errorMessage);
   }
 };
 
 export const generateImage = async (prompt: string, style?: string): Promise<string> => {
   try {
+    const aiClient = getAiClient();
     const fullPrompt = style ? `${style} style, ${prompt}` : prompt;
-    const response = await ai.models.generateContent({
+    const response = await aiClient.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: { parts: [{ text: fullPrompt }] },
         config: {
@@ -67,7 +82,8 @@ export const generateImage = async (prompt: string, style?: string): Promise<str
 
 export const modifyImage = async (prompt: string, imageBase64: string, mimeType: string): Promise<string> => {
     try {
-        const response = await ai.models.generateContent({
+        const aiClient = getAiClient();
+        const response = await aiClient.models.generateContent({
             model: 'gemini-2.5-flash-image',
             contents: {
                 parts: [
@@ -109,7 +125,8 @@ export const modifyImage = async (prompt: string, imageBase64: string, mimeType:
 
 export const generateBehanceContent = async (imageBase64: string, mimeType: string): Promise<BehanceContent> => {
     try {
-        const response: GenerateContentResponse = await ai.models.generateContent({
+        const aiClient = getAiClient();
+        const response: GenerateContentResponse = await aiClient.models.generateContent({
             model: "gemini-2.5-flash",
             contents: {
                 parts: [
