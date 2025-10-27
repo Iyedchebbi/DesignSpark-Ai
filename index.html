@@ -5,6 +5,14 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Design Spark AI</title>
+    <script>
+      // This polyfill makes the API key available to the application code.
+      window.process = {
+        env: {
+          API_KEY: 'AIzaSyD5xVZw3epLVCqpuIjaawBTzUQUHj8gKuM'
+        }
+      };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
