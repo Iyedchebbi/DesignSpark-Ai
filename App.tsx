@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { Page, Theme, Language, BehanceContent } from './types';
-import { analyzeDesign, generateImage, modifyImage, generateBehanceContent, fileToBase64, deconstructDesign, applyStyle } from './services/geminiService';
-import { Card, Button, Spinner, ImageUpload, Icons } from './components/ui';
+import { Page, Theme, Language, BehanceContent, BrandKitContent } from './types';
+import { analyzeDesign, generateImage, modifyImage, generateBehanceContent, fileToBase64, deconstructDesign, applyStyle, extractBrandKit } from './services/geminiService';
+import { Card, Button, Spinner, ImageUpload, Icons, Dropdown } from './components/ui';
 
 // --- TRANSLATIONS ---
 const translations = {
@@ -9,9 +9,11 @@ const translations = {
     'Design Spark AI': 'ديزاين سبارك AI',
     'Your AI partner for creative design.': 'شريكك الذكي للتصميم الإبداعي.',
     'Developed by Iyed CHEBBI': 'تطوير إياد الشابي',
+    'Home': 'الرئيسية',
     'Design Analysis': 'تحليل التصميم',
     'Image Generation': 'توليد الصور',
     'Image Edition': 'تعديل الصور',
+    'Brand Kit': 'عدة العلامة التجارية',
     'Behance Publisher': 'النشر على Behance',
     'Upload your design': 'ارفع تصميمك',
     'Analyze Design': 'حلّل التصميم',
@@ -31,195 +33,139 @@ const translations = {
     'Hashtags': 'الهاشتاجات',
     'Copy': 'نسخ',
     'Copied!': 'تم النسخ!',
+    'Welcome to Design Spark AI': 'أهلاً بك في ديزاين سبارك AI',
+    'Select a tool to get started': 'اختر أداة للبدء',
     'Design Analysis & Refinement': 'تحليل وتحسين التصميم',
     'AI Image Generation & Modification': 'توليد وتعديل الصور بالذكاء الاصطناعي',
     'AI-Powered Image Editing': 'تعديل الصور بالذكاء الاصطناعي',
+    'AI Brand Kit Generator': 'مولد عدة العلامة التجارية',
     'Professional Behance Publishing': 'النشر الاحترافي على Behance',
     'Get expert feedback on your designs to elevate your work.': 'احصل على تقييم احترافي لتصاميمك لتحسين عملك.',
     'Create stunning visuals from text or modify existing images.': 'أنشئ صورًا مذهلة من النصوص أو قم بتعديل صورك الحالية.',
-    'Easily remove backgrounds or change aspect ratios with AI assistance.': 'أزل الخلفيات بسهولة أو غيّر أبعاد الصور بمساعدة الذكاء الاصطناعي.',
+    'Easily remove backgrounds or change aspect ratios of your images.': 'أزل الخلفيات بسهولة أو غيّر أبعاد صورك.',
+    'Instantly generate a full brand identity from just a logo.': 'أنشئ هوية علامة تجارية كاملة فورًا من مجرد شعار.',
     'Generate professional titles, descriptions, and keywords for Behance.': 'أنشئ عناوين وأوصاف وكلمات مفتاحية احترافية لمنصة Behance.',
-    'Light': 'فاتح',
-    'Dark': 'داكن',
-    'System': 'النظام',
-    'Update the design': 'تحديث التصميم',
-    'Updated Design': 'التصميم المحدث',
-    'Download Updated Image': 'تحميل الصورة المحدثة',
-    'Download Edited Image': 'تحميل الصورة المعدلة',
-    'Start Over': 'ابدأ من جديد',
-    'Undo': 'تراجع',
-    'Share to Behance': 'انشر على Behance',
-    'Content Copied! Opening Behance...': 'تم نسخ المحتوى! يتم فتح Behance...',
+    'Light': 'فاتح', 'Dark': 'داكن', 'System': 'النظام',
+    'Update the design': 'تحديث التصميم', 'Updated Design': 'التصميم المحدث',
+    'Download Updated Image': 'تحميل الصورة المحدثة', 'Download Edited Image': 'تحميل الصورة المعدلة',
+    'Download Result': 'تحميل النتيجة', 'Start Over': 'ابدأ من جديد', 'Undo': 'تراجع',
+    'Share to Behance': 'انشر على Behance', 'Content Copied! Opening Behance...': 'تم نسخ المحتوى! يتم فتح Behance...',
     'Copies description & hashtags, then opens Behance.': 'ينسخ الوصف والهاشتاجات، ثم يفتح Behance.',
-    'Download Image': 'تحميل الصورة',
-    'Style Presets': 'أنماط جاهزة',
-    'No Style': 'بدون نمط',
-    'Photorealistic': 'واقعي',
-    'Vector Art': 'فن فيكتور',
-    'Watercolor': 'ألوان مائية',
-    'Concept Sketch': 'رسم مبدئي',
-    'Error': 'خطأ',
-    'An error occurred': 'حدث خطأ',
-    'Critique & Refine': 'النقد والتحسين',
-    'Deconstruct & Apply Style': 'تفكيك وتطبيق النمط',
-    'Upload Your Design': 'ارفع تصميمك',
-    'Upload Reference Design': 'ارفع التصميم المرجعي',
-    'Deconstruct Reference': 'فكك المرجع',
-    'Apply Style to My Design': 'طبق النمط على تصميمي',
-    'Deconstructed Prompt': 'الوصف المُفَكَّك',
-    'Style-Applied Design': 'التصميم بالنمط المطبق',
+    'Download Image': 'تحميل الصورة', 'Style Presets': 'أنماط جاهزة', 'No Style': 'بدون نمط',
+    'Photorealistic': 'واقعي', 'Vector Art': 'فن فيكتور', 'Watercolor': 'ألوان مائية', 'Concept Sketch': 'رسم مبدئي',
+    'Error': 'خطأ', 'An error occurred': 'حدث خطأ',
+    'Critique & Refine': 'النقد والتحسين', 'Deconstruct & Apply Style': 'تفكيك وتطبيق النمط',
+    'Upload Your Design': 'ارفع تصميمك', 'Upload Reference Design': 'ارفع التصميم المرجعي',
+    'Deconstruct Reference': 'فكك المرجع', 'Apply Style to My Design': 'طبق النمط على تصميمي',
+    'Deconstructed Prompt': 'الوصف المُفَكَّك', 'Style-Applied Design': 'التصميم بالنمط المطبق',
     'Get detailed feedback and AI-driven refinements for your design.': 'احصل على تقييم مفصل وتحسينات مدفوعة بالذكاء الاصطناعي لتصميمك.',
     'Extract a creative prompt from a reference design or apply its style to yours.': 'استخرج وصفًا إبداعيًا من تصميم مرجعي أو طبّق أسلوبه على تصميمك.',
     'Your deconstructed prompt will appear here.': 'سيظهر هنا الوصف المستخرج من التصميم المرجعي.',
-    'Remove Background': 'إزالة الخلفية',
-    'Aspect Ratio': 'نسبة الأبعاد',
-    'Original': 'الأصلي',
-    'Edited Result': 'النتيجة المعدلة',
-    'Your edited image will appear here.': 'ستظهر صورتك المعدلة هنا.',
+    'Remove Background': 'إزالة الخلفية', 'Aspect Ratio': 'نسبة الأبعاد',
+    'Original': 'الأصلي', 'Edited Result': 'النتيجة المعدلة', 'Your edited image will appear here.': 'ستظهر صورتك المعدلة هنا.',
+    'Help & Support': 'المساعدة والدعم', 'Contact Me': 'تواصل معي',
+    'Upload your logo': 'ارفع شعارك', 'Extract Brand Identity': 'استخرج هوية العلامة التجارية',
+    'Brand Kit Results': 'نتائج عدة العلامة التجارية', 'Color Palette': 'لوحة الألوان', 'Typography': 'الخطوط',
+    'Primary': 'أساسي', 'Secondary': 'ثانوي', 'Accent': 'إضافي',
+    'Heading Font': 'خط العناوين', 'Body Font': 'خط النصوص', 'Rationale': 'السبب',
+    // FIX: Add missing translation keys
+    'Theme': 'المظهر', 'Language': 'اللغة',
   },
   en: {
-    'Design Spark AI': 'Design Spark AI',
-    'Your AI partner for creative design.': 'Your AI partner for creative design.',
-    'Developed by Iyed CHEBBI': 'Developed by Iyed CHEBBI',
-    'Design Analysis': 'Design Analysis',
-    'Image Generation': 'Image Generation',
-    'Image Edition': 'Image Edition',
-    'Behance Publisher': 'Behance Publisher',
-    'Upload your design': 'Upload your design',
-    'Analyze Design': 'Analyze Design',
-    'Enter a prompt to generate an image...': 'Enter a prompt to generate an image...',
-    'Generate Image': 'Generate Image',
-    'Upload an image to modify': 'Upload an image to modify',
-    'Upload an image to edit': 'Upload an image to edit',
-    'Enter a prompt to modify the image...': 'Enter a prompt to modify the image...',
-    'Modify Image': 'Modify Image',
-    'Upload your final design': 'Upload your final design',
-    'Generate Behance Content': 'Generate Behance Content',
-    'Analysis Results': 'Analysis Results',
-    'Generated Content': 'Generated Content',
-    'Title': 'Title',
-    'Description': 'Description',
-    'Keywords': 'Keywords',
-    'Hashtags': 'Hashtags',
-    'Copy': 'Copy',
-    'Copied!': 'Copied!',
+    'Design Spark AI': 'Design Spark AI', 'Your AI partner for creative design.': 'Your AI partner for creative design.',
+    'Developed by Iyed CHEBBI': 'Developed by Iyed CHEBBI', 'Home': 'Home', 'Design Analysis': 'Design Analysis',
+    'Image Generation': 'Image Generation', 'Image Edition': 'Image Edition', 'Brand Kit': 'Brand Kit',
+    'Behance Publisher': 'Behance Publisher', 'Upload your design': 'Upload your design',
+    'Analyze Design': 'Analyze Design', 'Enter a prompt to generate an image...': 'Enter a prompt to generate an image...',
+    'Generate Image': 'Generate Image', 'Upload an image to modify': 'Upload an image to modify',
+    'Upload an image to edit': 'Upload an image to edit', 'Enter a prompt to modify the image...': 'Enter a prompt to modify the image...',
+    'Modify Image': 'Modify Image', 'Upload your final design': 'Upload your final design',
+    'Generate Behance Content': 'Generate Behance Content', 'Analysis Results': 'Analysis Results',
+    'Generated Content': 'Generated Content', 'Title': 'Title', 'Description': 'Description',
+    'Keywords': 'Keywords', 'Hashtags': 'Hashtags', 'Copy': 'Copy', 'Copied!': 'Copied!',
+    'Welcome to Design Spark AI': 'Welcome to Design Spark AI', 'Select a tool to get started': 'Select a tool to get started',
     'Design Analysis & Refinement': 'Design Analysis & Refinement',
     'AI Image Generation & Modification': 'AI Image Generation & Modification',
-    'AI-Powered Image Editing': 'AI-Powered Image Editing',
+    'AI-Powered Image Editing': 'AI-Powered Image Editing', 'AI Brand Kit Generator': 'AI Brand Kit Generator',
     'Professional Behance Publishing': 'Professional Behance Publishing',
     'Get expert feedback on your designs to elevate your work.': 'Get expert feedback on your designs to elevate your work.',
     'Create stunning visuals from text or modify existing images.': 'Create stunning visuals from text or modify existing images.',
-    'Easily remove backgrounds or change aspect ratios with AI assistance.': 'Easily remove backgrounds or change aspect ratios with AI assistance.',
+    'Easily remove backgrounds or change aspect ratios of your images.': 'Easily remove backgrounds or change aspect ratios of your images.',
+    'Instantly generate a full brand identity from just a logo.': 'Instantly generate a full brand identity from just a logo.',
     'Generate professional titles, descriptions, and keywords for Behance.': 'Generate professional titles, descriptions, and keywords for Behance.',
-    'Light': 'Light',
-    'Dark': 'Dark',
-    'System': 'System',
-    'Update the design': 'Update the design',
-    'Updated Design': 'Updated Design',
-    'Download Updated Image': 'Download Updated Image',
-    'Download Edited Image': 'Download Edited Image',
-    'Start Over': 'Start Over',
-    'Undo': 'Undo',
-    'Share to Behance': 'Share to Behance',
-    'Content Copied! Opening Behance...': 'Content Copied! Opening Behance...',
+    'Light': 'Light', 'Dark': 'Dark', 'System': 'System',
+    'Update the design': 'Update the design', 'Updated Design': 'Updated Design',
+    'Download Updated Image': 'Download Updated Image', 'Download Edited Image': 'Download Edited Image',
+    'Download Result': 'Download Result', 'Start Over': 'Start Over', 'Undo': 'Undo',
+    'Share to Behance': 'Share to Behance', 'Content Copied! Opening Behance...': 'Content Copied! Opening Behance...',
     'Copies description & hashtags, then opens Behance.': 'Copies description & hashtags, then opens Behance.',
-    'Download Image': 'Download Image',
-    'Style Presets': 'Style Presets',
-    'No Style': 'No Style',
-    'Photorealistic': 'Photorealistic',
-    'Vector Art': 'Vector Art',
-    'Watercolor': 'Watercolor',
-    'Concept Sketch': 'Concept Sketch',
-    'Error': 'Error',
-    'An error occurred': 'An error occurred',
-    'Critique & Refine': 'Critique & Refine',
-    'Deconstruct & Apply Style': 'Deconstruct & Apply Style',
-    'Upload Your Design': 'Upload Your Design',
-    'Upload Reference Design': 'Upload Reference Design',
-    'Deconstruct Reference': 'Deconstruct Reference',
-    'Apply Style to My Design': 'Apply Style to My Design',
-    'Deconstructed Prompt': 'Deconstructed Prompt',
-    'Style-Applied Design': 'Style-Applied Design',
+    'Download Image': 'Download Image', 'Style Presets': 'Style Presets', 'No Style': 'No Style',
+    'Photorealistic': 'Photorealistic', 'Vector Art': 'Vector Art', 'Watercolor': 'Watercolor', 'Concept Sketch': 'Concept Sketch',
+    'Error': 'Error', 'An error occurred': 'An error occurred',
+    'Critique & Refine': 'Critique & Refine', 'Deconstruct & Apply Style': 'Deconstruct & Apply Style',
+    'Upload Your Design': 'Upload Your Design', 'Upload Reference Design': 'Upload Reference Design',
+    'Deconstruct Reference': 'Deconstruct Reference', 'Apply Style to My Design': 'Apply Style to My Design',
+    'Deconstructed Prompt': 'Deconstructed Prompt', 'Style-Applied Design': 'Style-Applied Design',
     'Get detailed feedback and AI-driven refinements for your design.': 'Get detailed feedback and AI-driven refinements for your design.',
     'Extract a creative prompt from a reference design or apply its style to yours.': 'Extract a creative prompt from a reference design or apply its style to yours.',
     'Your deconstructed prompt will appear here.': 'Your deconstructed prompt will appear here.',
-    'Remove Background': 'Remove Background',
-    'Aspect Ratio': 'Aspect Ratio',
-    'Original': 'Original',
-    'Edited Result': 'Edited Result',
-    'Your edited image will appear here.': 'Your edited image will appear here.',
+    'Remove Background': 'Remove Background', 'Aspect Ratio': 'Aspect Ratio',
+    'Original': 'Original', 'Edited Result': 'Edited Result', 'Your edited image will appear here.': 'Your edited image will appear here.',
+    'Help & Support': 'Help & Support', 'Contact Me': 'Contact Me',
+    'Upload your logo': 'Upload your logo', 'Extract Brand Identity': 'Extract Brand Identity',
+    'Brand Kit Results': 'Brand Kit Results', 'Color Palette': 'Color Palette', 'Typography': 'Typography',
+    'Primary': 'Primary', 'Secondary': 'Secondary', 'Accent': 'Accent',
+    'Heading Font': 'Heading Font', 'Body Font': 'Body Font', 'Rationale': 'Rationale',
+    // FIX: Add missing translation keys
+    'Theme': 'Theme', 'Language': 'Language',
   },
   fr: {
-    'Design Spark AI': 'Design Spark IA',
-    'Your AI partner for creative design.': 'Votre partenaire IA pour le design créatif.',
-    'Developed by Iyed CHEBBI': 'Développé par Iyed CHEBBI',
-    'Design Analysis': 'Analyse de Design',
-    'Image Generation': 'Génération d\'Images',
-    'Image Edition': 'Édition d\'Image',
-    'Behance Publisher': 'Publication Behance',
-    'Upload your design': 'Téléchargez votre design',
-    'Analyze Design': 'Analyser le Design',
-    'Enter a prompt to generate an image...': 'Entrez une description pour générer une image...',
-    'Generate Image': 'Générer l\'Image',
-    'Upload an image to modify': 'Téléchargez une image à modifier',
-    'Upload an image to edit': 'Téléchargez une image pour la modifier',
-    'Enter a prompt to modify the image...': 'Entrez une description pour modifier l\'image...',
-    'Modify Image': 'Modifier l\'Image',
-    'Upload your final design': 'Téléchargez votre design final',
-    'Generate Behance Content': 'Générer le contenu Behance',
-    'Analysis Results': 'Résultats de l\'Analyse',
-    'Generated Content': 'Contenu Généré',
-    'Title': 'Titre',
-    'Description': 'Description',
-    'Keywords': 'Mots-clés',
-    'Hashtags': 'Hashtags',
-    'Copy': 'Copier',
-    'Copied!': 'Copié !',
+    'Design Spark AI': 'Design Spark IA', 'Your AI partner for creative design.': 'Votre partenaire IA pour le design créatif.',
+    'Developed by Iyed CHEBBI': 'Développé par Iyed CHEBBI', 'Home': 'Accueil', 'Design Analysis': 'Analyse de Design',
+    'Image Generation': 'Génération d\'Images', 'Image Edition': 'Édition d\'Image', 'Brand Kit': 'Kit de Marque',
+    'Behance Publisher': 'Publication Behance', 'Upload your design': 'Téléchargez votre design',
+    'Analyze Design': 'Analyser le Design', 'Enter a prompt to generate an image...': 'Entrez une description pour générer une image...',
+    'Generate Image': 'Générer l\'Image', 'Upload an image to modify': 'Téléchargez une image à modifier',
+    'Upload an image to edit': 'Téléchargez une image pour la modifier', 'Enter a prompt to modify the image...': 'Entrez une description pour modifier l\'image...',
+    'Modify Image': 'Modifier l\'Image', 'Upload your final design': 'Téléchargez votre design final',
+    'Generate Behance Content': 'Générer le contenu Behance', 'Analysis Results': 'Résultats de l\'Analyse',
+    'Generated Content': 'Contenu Généré', 'Title': 'Titre', 'Description': 'Description', 'Keywords': 'Mots-clés', 'Hashtags': 'Hashtags',
+    'Copy': 'Copier', 'Copied!': 'Copié !',
+    'Welcome to Design Spark AI': 'Bienvenue sur Design Spark IA', 'Select a tool to get started': 'Sélectionnez un outil pour commencer',
     'Design Analysis & Refinement': 'Analyse et Raffinement de Design',
     'AI Image Generation & Modification': 'Génération et Modification d\'Images par IA',
-    'AI-Powered Image Editing': 'Édition d\'Images par IA',
+    'AI-Powered Image Editing': 'Édition d\'Images par IA', 'AI Brand Kit Generator': 'Générateur de Kit de Marque IA',
     'Professional Behance Publishing': 'Publication Professionnelle sur Behance',
     'Get expert feedback on your designs to elevate your work.': 'Obtenez des commentaires experts sur vos designs pour améliorer votre travail.',
     'Create stunning visuals from text or modify existing images.': 'Créez des visuels époustouflants à partir de texte ou modifiez des images existantes.',
-    'Easily remove backgrounds or change aspect ratios with AI assistance.': 'Supprimez facilement les arrière-plans ou modifiez les formats d\'image avec l\'aide de l\'IA.',
+    'Easily remove backgrounds or change aspect ratios of your images.': 'Supprimez facilement les arrière-plans ou modifiez les formats de vos images.',
+    'Instantly generate a full brand identity from just a logo.': 'Générez instantanément une identité de marque complète à partir d\'un simple logo.',
     'Generate professional titles, descriptions, and keywords for Behance.': 'Générez des titres, des descriptions et des mots-clés professionnels pour Behance.',
-    'Light': 'Clair',
-    'Dark': 'Sombre',
-    'System': 'Système',
-    'Update the design': 'Mettre à jour le design',
-    'Updated Design': 'Design Mis à Jour',
-    'Download Updated Image': 'Télécharger l\'Image Mise à Jour',
-    'Download Edited Image': 'Télécharger l\'Image Modifiée',
-    'Start Over': 'Recommencer',
-    'Undo': 'Annuler',
-    'Share to Behance': 'Partager sur Behance',
-    'Content Copied! Opening Behance...': 'Contenu copié ! Ouverture de Behance...',
+    'Light': 'Clair', 'Dark': 'Sombre', 'System': 'Système',
+    'Update the design': 'Mettre à jour le design', 'Updated Design': 'Design Mis à Jour',
+    'Download Updated Image': 'Télécharger l\'Image Mise à Jour', 'Download Edited Image': 'Télécharger l\'Image Modifiée',
+    'Download Result': 'Télécharger le Résultat', 'Start Over': 'Recommencer', 'Undo': 'Annuler',
+    'Share to Behance': 'Partager sur Behance', 'Content Copied! Opening Behance...': 'Contenu copié ! Ouverture de Behance...',
     'Copies description & hashtags, then opens Behance.': 'Copie la description et les hashtags, puis ouvre Behance.',
-    'Download Image': 'Télécharger l\'image',
-    'Style Presets': 'Styles Prédéfinis',
-    'No Style': 'Aucun Style',
-    'Photorealistic': 'Photoréaliste',
-    'Vector Art': 'Art Vectoriel',
-    'Watercolor': 'Aquarelle',
-    'Concept Sketch': 'Croquis Conceptuel',
-    'Error': 'Erreur',
-    'Une erreur est survenue': 'Une erreur est survenue',
-    'Critique & Refine': 'Critique & Raffinement',
-    'Deconstruct & Apply Style': 'Déconstruire & Appliquer le Style',
-    'Upload Your Design': 'Téléchargez Votre Design',
-    'Upload Reference Design': 'Téléchargez le Design de Référence',
-    'Deconstruct Reference': 'Déconstruire la Référence',
-    'Apply Style to My Design': 'Appliquer le Style à Mon Design',
-    'Deconstructed Prompt': 'Prompt Déconstruit',
-    'Style-Applied Design': 'Design avec Style Appliqué',
+    'Download Image': 'Télécharger l\'image', 'Style Presets': 'Styles Prédéfinis', 'No Style': 'Aucun Style',
+    'Photorealistic': 'Photoréaliste', 'Vector Art': 'Art Vectoriel', 'Watercolor': 'Aquarelle', 'Concept Sketch': 'Croquis Conceptuel',
+    'Error': 'Erreur', 'Une erreur est survenue': 'Une erreur est survenue',
+    'Critique & Refine': 'Critique & Raffinement', 'Deconstruct & Apply Style': 'Déconstruire & Appliquer le Style',
+    'Upload Your Design': 'Téléchargez Votre Design', 'Upload Reference Design': 'Téléchargez le Design de Référence',
+    'Deconstruct Reference': 'Déconstruire la Référence', 'Apply Style to My Design': 'Appliquer le Style à Mon Design',
+    'Deconstructed Prompt': 'Prompt Déconstruit', 'Style-Applied Design': 'Design avec Style Appliqué',
     'Get detailed feedback and AI-driven refinements for your design.': 'Obtenez des commentaires détaillés et des améliorations basées sur l\'IA pour votre design.',
     'Extract a creative prompt from a reference design or apply its style to yours.': 'Extrayez un prompt créatif d\'un design de référence ou appliquez son style au vôtre.',
     'Your deconstructed prompt will appear here.': 'Votre prompt déconstruit apparaîtra ici.',
-    'Remove Background': 'Supprimer l\'Arrière-plan',
-    'Aspect Ratio': 'Format d\'Image',
-    'Original': 'Original',
-    'Edited Result': 'Résultat Modifié',
-    'Your edited image will appear here.': 'Votre image modifiée apparaîtra ici.',
+    'Remove Background': 'Supprimer l\'Arrière-plan', 'Aspect Ratio': 'Format d\'Image',
+    'Original': 'Original', 'Edited Result': 'Résultat Modifié', 'Your edited image will appear here.': 'Votre image modifiée apparaîtra ici.',
+    'Help & Support': 'Aide & Support', 'Contact Me': 'Me Contacter',
+    'Upload your logo': 'Téléchargez votre logo', 'Extract Brand Identity': 'Extraire l\'Identité de Marque',
+    'Brand Kit Results': 'Résultats du Kit de Marque', 'Color Palette': 'Palette de Couleurs', 'Typography': 'Typographie',
+    'Primary': 'Primaire', 'Secondary': 'Secondaire', 'Accent': 'Accentuation',
+    'Heading Font': 'Police des Titres', 'Body Font': 'Police du Corps', 'Rationale': 'Justification',
+    // FIX: Add missing translation keys
+    'Theme': 'Thème', 'Language': 'Langue',
   },
 };
 
@@ -256,7 +202,7 @@ const useCopy = () => {
 const Tooltip: React.FC<{ content: string; children: React.ReactNode }> = ({ content, children }) => (
   <div className="relative group flex items-center">
     {children}
-    <div className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+    <div className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
       {content}
     </div>
   </div>
@@ -290,6 +236,42 @@ const ErrorDisplay: React.FC<{ message: string, onDismiss: () => void }> = ({ me
 };
 
 // --- PAGE COMPONENTS ---
+
+const HomePage: React.FC = () => {
+    const { t, setPage } = useAppContext();
+    const tools = [
+        { page: Page.DesignAnalysis, icon: Icons.Analyze, title: 'Design Analysis', description: 'Get expert feedback on your designs to elevate your work.' },
+        { page: Page.ImageGeneration, icon: Icons.ImageGen, title: 'Image Generation', description: 'Create stunning visuals from text or modify existing images.' },
+        { page: Page.ImageEdition, icon: Icons.Crop, title: 'Image Edition', description: 'Easily remove backgrounds or change aspect ratios of your images.' },
+        { page: Page.BrandKit, icon: Icons.BrandKit, title: 'Brand Kit', description: 'Instantly generate a full brand identity from just a logo.' },
+        { page: Page.BehancePublisher, icon: Icons.Behance, title: 'Behance Publisher', description: 'Generate professional titles, descriptions, and keywords for Behance.' },
+    ];
+
+    return (
+        <div className="space-y-8 animate-fade-in-up">
+            <div className="text-center">
+                <h1 className="text-5xl font-extrabold text-slate-800 dark:text-white tracking-tight">{t('Welcome to Design Spark AI')}</h1>
+                <p className="text-slate-600 dark:text-slate-300 mt-4 text-lg max-w-2xl mx-auto">{t('Your AI partner for creative design.')} {t('Select a tool to get started')}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {tools.map((tool) => (
+                    <div key={tool.page} onClick={() => setPage(tool.page)} className="cursor-pointer group">
+                        <Card className="p-6 text-center h-full">
+                            <div className="flex justify-center items-center mb-4">
+                                <div className="p-3 bg-primary-100 dark:bg-primary-900/50 rounded-full group-hover:scale-110 transition-transform">
+                                    <tool.icon className="w-8 h-8 text-primary-600 dark:text-primary-300" />
+                                </div>
+                            </div>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">{t(tool.title as keyof typeof translations.en)}</h2>
+                            <p className="text-slate-600 dark:text-slate-400 mt-2 text-sm">{t(tool.description as keyof typeof translations.en)}</p>
+                        </Card>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 
 const CritiqueAndRefineTab: React.FC = () => {
   const { t, language } = useAppContext();
@@ -656,14 +638,34 @@ const ImageGenerationPage: React.FC = () => {
 
 const ImageEditionPage: React.FC = () => {
     const { t } = useAppContext();
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [editedImageUrl, setEditedImageUrl] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [originalFile, setOriginalFile] = useState<File | null>(null);
+    const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null); // From AI
+    const [displayImageUrl, setDisplayImageUrl] = useState<string | null>(null); // For display
+    const [activeRatio, setActiveRatio] = useState<string>('Original');
+    const [isLoading, setIsLoading] = useState(false); // For AI background removal
     const [error, setError] = useState<string | null>(null);
-    const [activeRatio, setActiveRatio] = useState<string | null>(null);
+
+    // Effect to manage object URLs for the original file
+    useEffect(() => {
+        if (!originalFile) {
+          setDisplayImageUrl(null);
+          return;
+        }
+        // If there's an AI-processed image, don't show the original
+        if (processedImageUrl) {
+            setDisplayImageUrl(processedImageUrl);
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(originalFile);
+        setDisplayImageUrl(objectUrl);
+
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [originalFile, processedImageUrl]);
+
 
     const aspectRatios = [
+        { id: 'Original', name: t('Original') },
         { id: '1:1', name: '1:1 (Square)' },
         { id: '16:9', name: '16:9 (Widescreen)' },
         { id: '4:3', name: '4:3 (Standard)' },
@@ -671,41 +673,73 @@ const ImageEditionPage: React.FC = () => {
     ];
 
     const handleImageSelect = (file: File) => {
-        setImageFile(file);
-        setPreviewUrl(URL.createObjectURL(file));
-        setEditedImageUrl(null);
+        setOriginalFile(file);
+        setProcessedImageUrl(null);
         setError(null);
-        setActiveRatio(null);
+        setActiveRatio('Original');
     };
 
     const handleReset = () => {
-        setImageFile(null);
-        setPreviewUrl(null);
-        setEditedImageUrl(null);
+        setOriginalFile(null);
+        setProcessedImageUrl(null);
         setIsLoading(false);
         setError(null);
-        setActiveRatio(null);
+        setActiveRatio('Original');
     };
 
     const handleDownload = () => {
-        if (!editedImageUrl) return;
-        const link = document.createElement('a');
-        link.href = editedImageUrl;
-        link.download = 'edited-image.png';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        if (!displayImageUrl) return;
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = displayImageUrl;
+        img.onload = () => {
+            if (activeRatio === 'Original') {
+                const link = document.createElement('a');
+                link.href = displayImageUrl;
+                link.download = 'edited-image.png';
+                link.click();
+                return;
+            }
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            const [ratioW, ratioH] = activeRatio.split(':').map(Number);
+            const targetRatio = ratioW / ratioH;
+
+            let srcX = 0, srcY = 0, srcWidth = img.naturalWidth, srcHeight = img.naturalHeight;
+            const sourceRatio = srcWidth / srcHeight;
+
+            if (targetRatio > sourceRatio) { // Target is wider than source
+                srcHeight = srcWidth / targetRatio;
+                srcY = (img.naturalHeight - srcHeight) / 2;
+            } else { // Target is taller or same ratio as source
+                srcWidth = srcHeight * targetRatio;
+                srcX = (img.naturalWidth - srcWidth) / 2;
+            }
+
+            canvas.width = srcWidth;
+            canvas.height = srcHeight;
+            ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, srcWidth, srcHeight);
+
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `edited-image-${activeRatio.replace(':', 'x')}.png`;
+            link.click();
+        };
+        img.onerror = () => setError('Could not load image for processing.');
     };
 
-    const performEdit = async (prompt: string) => {
-        if (!imageFile) return;
+    const handleRemoveBackground = async () => {
+        if (!originalFile) return;
         setIsLoading(true);
         setError(null);
-        setEditedImageUrl(null);
         try {
-            const imageBase64 = await fileToBase64(imageFile);
-            const result = await modifyImage(prompt, imageBase64, imageFile.type);
-            setEditedImageUrl(`data:image/png;base64,${result}`);
+            const imageBase64 = await fileToBase64(originalFile);
+            const result = await modifyImage("Remove the background of this image, making it transparent. The main subject should be perfectly isolated.", imageBase64, originalFile.type);
+            setProcessedImageUrl(`data:image/png;base64,${result}`);
         } catch (err) {
             setError(err instanceof Error ? err.message : t('An error occurred'));
         } finally {
@@ -713,37 +747,31 @@ const ImageEditionPage: React.FC = () => {
         }
     };
 
-    const handleRemoveBackground = () => {
-        setActiveRatio(null);
-        performEdit("Remove the background of this image, making it transparent. The main subject should be perfectly isolated.");
-    };
-
-    const handleAspectRatioChange = (ratio: string) => {
-        setActiveRatio(ratio);
-        performEdit(`Reframe this image to a ${ratio} aspect ratio. Ensure the main subject is centered and well-composed within the new frame.`);
+    const getAspectRatioValue = (ratio: string): number | undefined => {
+        if (ratio === 'Original') return undefined;
+        const [w, h] = ratio.split(':').map(Number);
+        return w / h;
     };
 
     return (
         <div className="space-y-6 animate-fade-in-up">
             <div className="text-center md:text-left">
                 <h1 className="text-4xl font-bold text-slate-800 dark:text-white">{t('AI-Powered Image Editing')}</h1>
-                <p className="text-slate-600 dark:text-slate-300 mt-2">{t('Easily remove backgrounds or change aspect ratios with AI assistance.')}</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-2">{t('Easily remove backgrounds or change aspect ratios of your images.')}</p>
             </div>
             <Card className="p-6 relative">
-                {imageFile && <button onClick={handleReset} className="absolute top-4 right-4 p-2 rounded-full bg-white/50 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10" title={t('Start Over')}><Icons.Refresh className="w-5 h-5" /></button>}
+                {originalFile && <button onClick={handleReset} className="absolute top-4 right-4 p-2 rounded-full bg-white/50 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10" title={t('Start Over')}><Icons.Refresh className="w-5 h-5" /></button>}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     <div className="space-y-4">
-                        <ImageUpload onImageSelect={handleImageSelect} previewUrl={previewUrl} text={t('Upload an image to edit')} />
+                        <ImageUpload onImageSelect={handleImageSelect} previewUrl={displayImageUrl} text={t('Upload an image to edit')} />
+                        <Button onClick={handleRemoveBackground} disabled={!originalFile || isLoading} isLoading={isLoading} className="w-full h-12 text-base">
+                            <Icons.RemoveBg className="w-5 h-5 mr-2" /> {t('Remove Background')}
+                        </Button>
                         <div className="space-y-2">
-                             <Button onClick={handleRemoveBackground} disabled={!imageFile || isLoading} isLoading={isLoading && !activeRatio} className="w-full h-12 text-base">
-                                <Icons.RemoveBg className="w-5 h-5 mr-2" /> {t('Remove Background')}
-                            </Button>
-                        </div>
-                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('Aspect Ratio')}</label>
                             <div className="grid grid-cols-2 gap-2">
                                 {aspectRatios.map(ratio => (
-                                    <Button key={ratio.id} onClick={() => handleAspectRatioChange(ratio.id)} disabled={!imageFile || isLoading} isLoading={isLoading && activeRatio === ratio.id} variant="secondary" className="w-full h-12 text-base">
+                                    <Button key={ratio.id} onClick={() => setActiveRatio(ratio.id)} disabled={!originalFile} variant={activeRatio === ratio.id ? 'primary' : 'secondary'} className="w-full h-12 text-base">
                                         <Icons.Crop className="w-5 h-5 mr-2" /> {ratio.name}
                                     </Button>
                                 ))}
@@ -752,10 +780,10 @@ const ImageEditionPage: React.FC = () => {
                     </div>
                     <div className="min-h-[20rem] flex flex-col">
                         <h3 className="font-semibold mb-2 text-center">{t('Edited Result')}</h3>
-                        <Card className="bg-slate-50 dark:bg-slate-900/50 w-full aspect-square flex items-center justify-center overflow-hidden">
-                            {isLoading ? <Spinner /> : editedImageUrl ? <img src={editedImageUrl} alt="Edited result" className="object-contain w-full h-full" /> : <div className="text-slate-400 text-center p-4">{t('Your edited image will appear here.')}</div>}
+                        <Card className="bg-slate-50 dark:bg-slate-900/50 w-full flex items-center justify-center overflow-hidden transition-all" style={{ aspectRatio: getAspectRatioValue(activeRatio) || 'auto' }}>
+                             {isLoading ? <Spinner /> : displayImageUrl ? <img src={displayImageUrl} alt="Edited result" className="object-contain w-full h-full" /> : <div className="text-slate-400 text-center p-4">{t('Your edited image will appear here.')}</div>}
                         </Card>
-                        {editedImageUrl && !isLoading && <Button onClick={handleDownload} className="w-full mt-4 h-12 text-base"><Icons.Download className="w-5 h-5 mr-2" /> {t('Download Edited Image')}</Button>}
+                        {displayImageUrl && !isLoading && <Button onClick={handleDownload} className="w-full mt-4 h-12 text-base"><Icons.Download className="w-5 h-5 mr-2" /> {t('Download Result')}</Button>}
                     </div>
                 </div>
                 {error && <div className="mt-4"><ErrorDisplay message={error} onDismiss={() => setError(null)} /></div>}
@@ -764,6 +792,120 @@ const ImageEditionPage: React.FC = () => {
     );
 };
 
+const BrandKitPage: React.FC = () => {
+    const { t } = useAppContext();
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [brandKit, setBrandKit] = useState<BrandKitContent | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleImageSelect = (file: File) => {
+        setImageFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+        setBrandKit(null);
+        setError(null);
+    };
+
+    const handleExtract = async () => {
+        if (!imageFile) return;
+        setIsLoading(true);
+        setError(null);
+        setBrandKit(null);
+        try {
+            const base64 = await fileToBase64(imageFile);
+            const result = await extractBrandKit(base64, imageFile.type);
+            setBrandKit(result);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : t('An error occurred'));
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    const handleReset = () => {
+      setImageFile(null);
+      setPreviewUrl(null);
+      setBrandKit(null);
+      setIsLoading(false);
+      setError(null);
+    }
+
+    const ColorSwatch: React.FC<{ name: string; color: string }> = ({ name, color }) => {
+        const { copied, copy } = useCopy();
+        return (
+            <div className="text-center">
+                <div 
+                    className="w-24 h-24 rounded-full mx-auto shadow-lg border-4 border-white/50 dark:border-slate-700/50 cursor-pointer transform hover:scale-105 transition-transform"
+                    style={{ backgroundColor: color }}
+                    onClick={() => copy(color)}
+                />
+                <h4 className="font-semibold mt-2">{name}</h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{copied ? t('Copied!') : color}</p>
+            </div>
+        );
+    };
+
+    return (
+        <div className="space-y-6 animate-fade-in-up">
+            <div className="text-center md:text-left">
+                <h1 className="text-4xl font-bold text-slate-800 dark:text-white">{t('AI Brand Kit Generator')}</h1>
+                <p className="text-slate-600 dark:text-slate-300 mt-2">{t('Instantly generate a full brand identity from just a logo.')}</p>
+            </div>
+             <Card className="p-6 relative">
+                {imageFile && <button onClick={handleReset} className="absolute top-4 right-4 p-2 rounded-full bg-white/50 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10" title={t('Start Over')}><Icons.Refresh className="w-5 h-5" /></button>}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <div className="space-y-4">
+                        <ImageUpload onImageSelect={handleImageSelect} previewUrl={previewUrl} text={t('Upload your logo')} />
+                        <Button onClick={handleExtract} disabled={!imageFile || isLoading} isLoading={isLoading} className="w-full h-12 text-base">
+                            <Icons.BrandKit className="w-5 h-5 mr-2" /> {t('Extract Brand Identity')}
+                        </Button>
+                    </div>
+                    <div className="min-h-[20rem] mt-6 md:mt-0">
+                        <h2 className="text-xl font-semibold mb-3 text-slate-700 dark:text-slate-200">{t('Brand Kit Results')}</h2>
+                         <div className="space-y-4">
+                            {isLoading ? <Card className="p-4 bg-slate-50 dark:bg-slate-900/50 min-h-[24rem] flex items-center justify-center"><Spinner /></Card>
+                            : brandKit ? (
+                                <div className="space-y-6">
+                                    <div >
+                                        <h3 className="text-lg font-semibold mb-4 text-slate-600 dark:text-slate-300 flex items-center"><Icons.Design className="w-5 h-5 mr-2"/>{t('Color Palette')}</h3>
+                                        <div className="flex justify-around items-center bg-slate-100 dark:bg-slate-800/70 p-6 rounded-lg">
+                                            <ColorSwatch name={t('Primary')} color={brandKit.colors.primary} />
+                                            <ColorSwatch name={t('Secondary')} color={brandKit.colors.secondary} />
+                                            <ColorSwatch name={t('Accent')} color={brandKit.colors.accent} />
+                                        </div>
+                                    </div>
+                                     <div>
+                                        <h3 className="text-lg font-semibold mb-4 text-slate-600 dark:text-slate-300 flex items-center"><Icons.Typography className="w-5 h-5 mr-2"/>{t('Typography')}</h3>
+                                        <div className="space-y-4 bg-slate-100 dark:bg-slate-800/70 p-6 rounded-lg">
+                                            <div>
+                                                <label className="text-sm font-medium">{t('Heading Font')}</label>
+                                                <p className="text-2xl" style={{fontFamily: brandKit.typography.headingFont}}>Aa - {brandKit.typography.headingFont}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-sm font-medium">{t('Body Font')}</label>
+                                                <p className="text-base" style={{fontFamily: brandKit.typography.bodyFont}}>Aa - {brandKit.typography.bodyFont}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-sm font-medium">{t('Rationale')}</label>
+                                                <p className="text-xs italic text-slate-500 dark:text-slate-400">{brandKit.typography.rationale}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <Card className="p-4 bg-slate-50 dark:bg-slate-900/50 min-h-[24rem] flex items-center justify-center text-slate-500 dark:text-slate-400">
+                                    Your generated brand kit will appear here.
+                                </Card>
+                            )}
+                        </div>
+                    </div>
+                </div>
+                 {error && <div className="mt-4"><ErrorDisplay message={error} onDismiss={() => setError(null)} /></div>}
+            </Card>
+        </div>
+    );
+}
 
 const BehancePublisherPage: React.FC = () => {
     const { t } = useAppContext();
@@ -874,7 +1016,7 @@ const NavItem: React.FC<{ page: Page; icon: React.ElementType; label: string; }>
                 }`}
             >
                 <Icon className="w-6 h-6" />
-                <span className="ml-4 font-semibold text-sm overflow-hidden whitespace-nowrap transition-all duration-300 w-0 group-hover:w-32 lg:w-32">{label}</span>
+                <span className="ml-4 font-semibold text-sm overflow-hidden whitespace-nowrap transition-all duration-300 w-0 group-hover:w-36 lg:w-36">{label}</span>
             </button>
         </Tooltip>
     );
@@ -883,26 +1025,23 @@ const NavItem: React.FC<{ page: Page; icon: React.ElementType; label: string; }>
 const Sidebar: React.FC = () => {
     const { t } = useAppContext();
     return (
-        <div className="hidden lg:flex flex-col w-20 hover:w-64 lg:w-64 p-4 space-y-2 bg-white/50 dark:bg-slate-800/30 backdrop-blur-xl border-r border-slate-200 dark:border-slate-700/50 transition-all duration-300">
+        <div className="hidden lg:flex flex-col w-20 hover:w-64 lg:w-64 p-4 space-y-2 bg-white/50 dark:bg-slate-800/30 backdrop-blur-xl border-r border-slate-200 dark:border-slate-700/50 transition-all duration-300 group">
             <div>
-              <div className="flex items-center space-x-2 px-2 h-12 group">
+              <div className="flex items-center space-x-2 px-2 h-16">
                   <Icons.Design className="w-8 h-8 text-primary-500 flex-shrink-0" />
-                  <span className="text-xl font-bold text-slate-800 dark:text-white overflow-hidden whitespace-nowrap transition-all duration-300 w-0 group-hover:w-40 lg:w-40">{t('Design Spark AI')}</span>
+                  <span className="text-xl font-bold text-slate-800 dark:text-white overflow-hidden whitespace-nowrap w-full">{t('Design Spark AI')}</span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 px-3 -mt-2 overflow-hidden whitespace-nowrap transition-all duration-300 w-0 group-hover:w-full lg:w-full">{t('Your AI partner for creative design.')}</p>
             </div>
             <nav className="flex-1 space-y-2 pt-4">
+                <NavItem page={Page.HomePage} icon={Icons.Home} label={t('Home')} />
                 <NavItem page={Page.DesignAnalysis} icon={Icons.Analyze} label={t('Design Analysis')} />
                 <NavItem page={Page.ImageGeneration} icon={Icons.ImageGen} label={t('Image Generation')} />
-                <NavItem page={Page.ImageEdition} icon={Icons.Wand} label={t('Image Edition')} />
+                <NavItem page={Page.ImageEdition} icon={Icons.Crop} label={t('Image Edition')} />
+                <NavItem page={Page.BrandKit} icon={Icons.BrandKit} label={t('Brand Kit')} />
                 <NavItem page={Page.BehancePublisher} icon={Icons.Behance} label={t('Behance Publisher')} />
             </nav>
-            <div className="space-y-2">
-                <ThemeToggle />
-                <LanguageToggle />
-            </div>
             <div className="pt-2 text-center">
-                <p className="text-xs text-slate-500 dark:text-slate-400 overflow-hidden whitespace-nowrap transition-all duration-300 w-0 group-hover:w-full lg:w-full">{t('Developed by Iyed CHEBBI')}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 overflow-hidden whitespace-nowrap w-full">{t('Developed by Iyed CHEBBI')}</p>
             </div>
         </div>
     );
@@ -911,9 +1050,11 @@ const Sidebar: React.FC = () => {
 const BottomNav: React.FC = () => {
     const { t, page: currentPage, setPage } = useAppContext();
     const navItems = [
+      { page: Page.HomePage, icon: Icons.Home, label: t('Home') },
       { page: Page.DesignAnalysis, icon: Icons.Analyze, label: t('Design Analysis') },
       { page: Page.ImageGeneration, icon: Icons.ImageGen, label: t('Image Generation') },
-      { page: Page.ImageEdition, icon: Icons.Wand, label: t('Image Edition') },
+      { page: Page.ImageEdition, icon: Icons.Crop, label: t('Image Edition') },
+      { page: Page.BrandKit, icon: Icons.BrandKit, label: t('Brand Kit') },
       { page: Page.BehancePublisher, icon: Icons.Behance, label: t('Behance Publisher') },
     ];
     return (
@@ -927,12 +1068,63 @@ const BottomNav: React.FC = () => {
                     }`}
                 >
                     <item.icon className="w-6 h-6 mb-1" />
-                    <span className="text-xs">{item.label}</span>
+                    <span className="text-xs text-center">{item.label}</span>
                 </button>
             ))}
         </div>
     );
 };
+
+const Header: React.FC = () => {
+    const { t, page } = useAppContext();
+    
+    const pageTitles: { [key in Page]: keyof typeof translations.en } = {
+        [Page.HomePage]: 'Home',
+        [Page.DesignAnalysis]: 'Design Analysis',
+        [Page.ImageGeneration]: 'Image Generation',
+        [Page.ImageEdition]: 'Image Edition',
+        [Page.BrandKit]: 'Brand Kit',
+        [Page.BehancePublisher]: 'Behance Publisher',
+    };
+
+    return (
+        <header className="sticky top-0 z-40 bg-white/50 dark:bg-slate-800/30 backdrop-blur-lg border-b border-slate-200 dark:border-slate-700/50 mb-6 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+                <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{t(pageTitles[page])}</h1>
+                <div className="flex items-center space-x-4">
+                    <UserMenu />
+                </div>
+            </div>
+        </header>
+    );
+};
+
+const UserMenu: React.FC = () => {
+    const { t } = useAppContext();
+    return (
+        <Dropdown trigger={
+            <button className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                <Icons.User className="w-6 h-6" />
+            </button>
+        }>
+            <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-600">
+                <p className="text-sm font-medium">{t('Theme')}</p>
+                <div className="mt-2"><ThemeToggle /></div>
+            </div>
+            <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-600">
+                <p className="text-sm font-medium">{t('Language')}</p>
+                 <div className="mt-2"><LanguageToggle /></div>
+            </div>
+            <a href="#" className="flex items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
+                <Icons.HelpCircle className="w-5 h-5 mr-2" /> {t('Help & Support')}
+            </a>
+            <a href="https://www.linkedin.com/in/iyedchebbi/" target="_blank" rel="noopener noreferrer" className="flex items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
+                <Icons.User className="w-5 h-5 mr-2" /> {t('Contact Me')}
+            </a>
+        </Dropdown>
+    );
+};
+
 
 const ThemeToggle = () => {
     const { theme, setTheme } = useAppContext();
@@ -977,7 +1169,7 @@ const LanguageToggle = () => {
 const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(() => (localStorage.getItem('theme') as Theme) || Theme.System);
   const [language, setLanguage] = useState<Language>(() => (localStorage.getItem('language') as Language) || Language.EN);
-  const [page, setPage] = useState<Page>(Page.DesignAnalysis);
+  const [page, setPage] = useState<Page>(Page.HomePage);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -1023,19 +1215,24 @@ function MainApp() {
 
     const renderPage = () => {
         switch (page) {
+            case Page.HomePage: return <HomePage />;
             case Page.DesignAnalysis: return <DesignAnalysisPage />;
             case Page.ImageGeneration: return <ImageGenerationPage />;
             case Page.ImageEdition: return <ImageEditionPage />;
+            case Page.BrandKit: return <BrandKitPage />;
             case Page.BehancePublisher: return <BehancePublisherPage />;
-            default: return <DesignAnalysisPage />;
+            default: return <HomePage />;
         }
     };
     
     return (
         <div className="flex h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300">
             <Sidebar />
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto pb-24 lg:pb-8 custom-scrollbar">
-                {renderPage()}
+            <main className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto pb-24 lg:pb-8 custom-scrollbar">
+                <Header />
+                <div className="flex-grow">
+                    {renderPage()}
+                </div>
             </main>
             <BottomNav />
         </div>

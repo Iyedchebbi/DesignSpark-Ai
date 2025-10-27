@@ -1,5 +1,5 @@
 import { GoogleGenAI, Modality, Type, GenerateContentResponse } from "@google/genai";
-import { BehanceContent } from '../types';
+import { BehanceContent, BrandKitContent } from '../types';
 
 // Lazily initialize the AI client to prevent app crash on start if API key is missing.
 let ai: GoogleGenAI | null = null;
@@ -235,5 +235,54 @@ export const generateBehanceContent = async (imageBase64: string, mimeType: stri
     } catch (error) {
         console.error("Error generating Behance content:", error);
         throw new Error("Failed to generate Behance content.");
+    }
+};
+
+
+export const extractBrandKit = async (imageBase64: string, mimeType: string): Promise<BrandKitContent> => {
+    try {
+        const aiClient = getAiClient();
+        const response: GenerateContentResponse = await aiClient.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: {
+                parts: [
+                    { text: "You are a professional branding expert. Analyze this logo and extract its brand identity. Provide a primary, secondary, and accent color in HEX format. Also, suggest a professional font pairing (one for headings, one for body text) from Google Fonts that complements the logo's style. Provide a brief rationale for your font choices." },
+                    { inlineData: { data: imageBase64, mimeType } }
+                ]
+            },
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        colors: {
+                            type: Type.OBJECT,
+                            properties: {
+                                primary: { type: Type.STRING, description: "The dominant color of the logo as a HEX code (e.g., '#RRGGBB')." },
+                                secondary: { type: Type.STRING, description: "The second most prominent color as a HEX code." },
+                                accent: { type: Type.STRING, description: "A complementary accent color from the logo as a HEX code." },
+                            },
+                             required: ['primary', 'secondary', 'accent']
+                        },
+                        typography: {
+                            type: Type.OBJECT,
+                            properties: {
+                                headingFont: { type: Type.STRING, description: "A suitable Google Font for headings (e.g., 'Poppins')." },
+                                bodyFont: { type: Type.STRING, description: "A suitable and readable Google Font for body text (e.g., 'Lato')." },
+                                rationale: { type: Type.STRING, description: "A brief, one-sentence explanation for the font pairing choice." },
+                            },
+                            required: ['headingFont', 'bodyFont', 'rationale']
+                        }
+                    },
+                    required: ['colors', 'typography']
+                },
+            },
+        });
+
+        const jsonString = response.text.trim();
+        return JSON.parse(jsonString) as BrandKitContent;
+    } catch (error) {
+        console.error("Error extracting brand kit:", error);
+        throw new Error("Failed to extract brand kit.");
     }
 };

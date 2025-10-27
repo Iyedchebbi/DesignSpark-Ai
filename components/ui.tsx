@@ -1,7 +1,8 @@
-import React from 'react';
-import { Palette, Image, Send, FileUp, Languages, Sun, Moon, Monitor, BrainCircuit, BotMessageSquare, Sparkles, Copy, Check, Download, Share2, Wand2, RefreshCw, RotateCcw, ClipboardSignature, Blend, Crop, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { LayoutDashboard, Palette, Image, Send, FileUp, Languages, Sun, Moon, Monitor, BrainCircuit, BotMessageSquare, Sparkles, Copy, Check, Download, Share2, Wand2, RefreshCw, RotateCcw, ClipboardSignature, Blend, Crop, Trash2, User, HelpCircle, Type, Briefcase } from 'lucide-react';
 
 export const Icons = {
+  Home: LayoutDashboard,
   Design: Palette,
   ImageGen: Image,
   Behance: Send,
@@ -24,16 +25,20 @@ export const Icons = {
   ApplyStyle: Blend,
   Crop,
   RemoveBg: Trash2,
+  User,
+  HelpCircle,
+  BrandKit: Briefcase,
+  Typography: Type,
 };
 
-interface CardProps {
+// FIX: Update CardProps to extend HTML div attributes to allow `style` and other props.
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  className?: string;
 }
 
-export const Card: React.FC<CardProps> = ({ children, className = '' }) => {
+export const Card: React.FC<CardProps> = ({ children, className = '', ...props }) => {
   return (
-    <div className={`bg-white/70 dark:bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 dark:border-slate-700/50 overflow-hidden transition-colors duration-300 ${className}`}>
+    <div className={`bg-white/70 dark:bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 dark:border-slate-700/50 overflow-hidden transition-all duration-300 hover:shadow-xl ${className}`} {...props}>
       {children}
     </div>
   );
@@ -133,4 +138,42 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelect, preview
       )}
     </div>
   );
+};
+
+interface DropdownProps {
+    trigger: React.ReactNode;
+    children: React.ReactNode;
+}
+
+export const Dropdown: React.FC<DropdownProps> = ({ trigger, children }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    return (
+        <div className="relative" ref={dropdownRef}>
+            <div onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">
+                {trigger}
+            </div>
+            {isOpen && (
+                <div 
+                    className="absolute right-0 mt-2 w-56 origin-top-right bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 animate-fade-in-up"
+                    style={{ animationDuration: '0.2s' }}
+                >
+                    <div className="py-1" onClick={() => setIsOpen(false)}>
+                        {children}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
