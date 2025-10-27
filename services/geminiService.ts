@@ -34,14 +34,30 @@ export const analyzeDesign = async (imageBase64: string, mimeType: string, langu
     };
     const targetLanguage = languageMap[language] || 'English';
 
+    const systemInstruction = `You are a world-class design mentor and critic. Your feedback must be structured, insightful, and actionable.
+    Analyze the provided design and generate a detailed critique in valid HTML format.
+    The response should be organized under the following <h4> headings:
+    1.  **Layout & Composition:** Discuss alignment, balance, hierarchy, and whitespace.
+    2.  **Color Palette:** Analyze color harmony, contrast, and emotional impact. Suggest improvements.
+    3.  **Typography:** Critique font choices, pairing, readability, and hierarchy.
+    4.  **Suggested Effects & Styles:** Propose specific, impactful effects like shadows, gradients, textures, or filters to enhance the design.
+    5.  **Actionable Summary:** Conclude with the 3 most critical improvements the designer should focus on.
+    
+    Use ordered lists (<ol><li>...</li></ol>) or unordered lists (<ul><li>...</li></ul>) within each section for clarity.
+    Keep the tone professional, encouraging, and helpful. The entire response must be in ${targetLanguage}.`;
+
+
     const response = await aiClient.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: {
             parts: [
-                { text: `You are an expert design critic. Your feedback must be concise, clear, and easy to read. Provide a numbered list of the 3 most important, actionable suggestions for improvement. Keep each point brief. Do not use long paragraphs. Format the response as a valid HTML ordered list (<ol> and <li> tags). The entire response must be in ${targetLanguage}. Here is the design to analyze:` },
+                { text: `Here is the design to analyze:` },
                 { inlineData: { data: imageBase64, mimeType } }
             ]
         },
+         config: {
+            systemInstruction: systemInstruction,
+        }
     });
     return response.text;
   } catch (error) {
@@ -50,6 +66,59 @@ export const analyzeDesign = async (imageBase64: string, mimeType: string, langu
     throw new Error(errorMessage);
   }
 };
+
+export const deconstructDesign = async (imageBase64: string, mimeType: string): Promise<string> => {
+    try {
+        const aiClient = getAiClient();
+        const response = await aiClient.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: {
+                parts: [
+                    { text: "You are a prompt engineering expert for AI image generators. Analyze this reference design in meticulous detail. Deconstruct its visual elements to create a comprehensive, single-paragraph text prompt that could be used to generate a similar image. Cover the following aspects: subject, composition, artistic style (e.g., photorealism, vector illustration, abstract), color palette and mood, lighting, textures, and any specific notable effects. The output must be only the prompt text, without any introductory phrases like 'Here is the prompt:'." },
+                    { inlineData: { data: imageBase64, mimeType } }
+                ]
+            }
+        });
+        return response.text.trim();
+    } catch (error) {
+        console.error("Error deconstructing design:", error);
+        throw new Error("Failed to deconstruct design.");
+    }
+};
+
+export const applyStyle = async (userImageBase64: string, userMimeType: string, refImageBase64: string, refMimeType: string): Promise<string> => {
+    try {
+        const aiClient = getAiClient();
+        const response = await aiClient.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: {
+                parts: [
+                    { text: "Take the core subject and composition from the first image. Now, completely transform its visual style to match the style of the second image. This includes applying the color palette, lighting, textures, and overall artistic mood from the second image onto the first one. The final output should be the modified first image." },
+                    { inlineData: { data: userImageBase64, mimeType: userMimeType } }, // User's image
+                    { inlineData: { data: refImageBase64, mimeType: refMimeType } }    // Reference image
+                ]
+            },
+            config: {
+                responseModalities: [Modality.IMAGE],
+            },
+        });
+
+        if (response.promptFeedback?.blockReason) {
+             throw new Error(`Request blocked: ${response.promptFeedback.blockReason}.`);
+        }
+
+        const imagePart = response.candidates?.[0]?.content?.parts?.find(part => part.inlineData);
+        if (imagePart && imagePart.inlineData) {
+            return imagePart.inlineData.data;
+        }
+
+        throw new Error("No image data found in style transfer response.");
+    } catch (error) {
+        console.error("Error applying style:", error);
+        throw new Error(`Failed to apply style. ${error instanceof Error ? error.message : ''}`);
+    }
+};
+
 
 export const generateImage = async (prompt: string, style?: string): Promise<string> => {
   try {

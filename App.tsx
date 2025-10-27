@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { Page, Theme, Language, BehanceContent } from './types';
-import { analyzeDesign, generateImage, modifyImage, generateBehanceContent, fileToBase64 } from './services/geminiService';
+import { analyzeDesign, generateImage, modifyImage, generateBehanceContent, fileToBase64, deconstructDesign, applyStyle } from './services/geminiService';
 import { Card, Button, Spinner, ImageUpload, Icons } from './components/ui';
 
 // --- TRANSLATIONS ---
@@ -11,7 +11,6 @@ const translations = {
     'Developed by Iyed CHEBBI': 'تطوير إياد الشابي',
     'Design Analysis': 'تحليل التصميم',
     'Image Generation': 'توليد الصور',
-    'Inspiration Board': 'لوحة الإلهام',
     'Behance Publisher': 'النشر على Behance',
     'Upload your design': 'ارفع تصميمك',
     'Analyze Design': 'حلّل التصميم',
@@ -30,7 +29,7 @@ const translations = {
     'Hashtags': 'الهاشتاجات',
     'Copy': 'نسخ',
     'Copied!': 'تم النسخ!',
-    'Design Analysis & Refinement': 'تحليل وتصحيح التصميم',
+    'Design Analysis & Refinement': 'تحليل وتحسين التصميم',
     'AI Image Generation & Modification': 'توليد وتعديل الصور بالذكاء الاصطناعي',
     'Professional Behance Publishing': 'النشر الاحترافي على Behance',
     'Get expert feedback on your designs to elevate your work.': 'احصل على تقييم احترافي لتصاميمك لتحسين عملك.',
@@ -48,9 +47,6 @@ const translations = {
     'Content Copied! Opening Behance...': 'تم نسخ المحتوى! يتم فتح Behance...',
     'Copies description & hashtags, then opens Behance.': 'ينسخ الوصف والهاشتاجات، ثم يفتح Behance.',
     'Download Image': 'تحميل الصورة',
-    'Generate Board': 'إنشاء لوحة',
-    'Enter a theme for your inspiration board...': 'أدخل موضوعًا للوحة الإلهام الخاصة بك...',
-    'Kickstart your creativity with an AI-generated mood board.': 'ابدأ إبداعك بلوحة إلهام من صنع الذكاء الاصطناعي.',
     'Style Presets': 'أنماط جاهزة',
     'No Style': 'بدون نمط',
     'Photorealistic': 'واقعي',
@@ -59,6 +55,17 @@ const translations = {
     'Concept Sketch': 'رسم مبدئي',
     'Error': 'خطأ',
     'An error occurred': 'حدث خطأ',
+    'Critique & Refine': 'النقد والتحسين',
+    'Deconstruct & Apply Style': 'تفكيك وتطبيق النمط',
+    'Upload Your Design': 'ارفع تصميمك',
+    'Upload Reference Design': 'ارفع التصميم المرجعي',
+    'Deconstruct Reference': 'فكك المرجع',
+    'Apply Style to My Design': 'طبق النمط على تصميمي',
+    'Deconstructed Prompt': 'الوصف المُفَكَّك',
+    'Style-Applied Design': 'التصميم بالنمط المطبق',
+    'Get detailed feedback and AI-driven refinements for your design.': 'احصل على تقييم مفصل وتحسينات مدفوعة بالذكاء الاصطناعي لتصميمك.',
+    'Extract a creative prompt from a reference design or apply its style to yours.': 'استخرج وصفًا إبداعيًا من تصميم مرجعي أو طبّق أسلوبه على تصميمك.',
+    'Your deconstructed prompt will appear here.': 'سيظهر هنا الوصف المستخرج من التصميم المرجعي.',
   },
   en: {
     'Design Spark AI': 'Design Spark AI',
@@ -66,7 +73,6 @@ const translations = {
     'Developed by Iyed CHEBBI': 'Developed by Iyed CHEBBI',
     'Design Analysis': 'Design Analysis',
     'Image Generation': 'Image Generation',
-    'Inspiration Board': 'Inspiration Board',
     'Behance Publisher': 'Behance Publisher',
     'Upload your design': 'Upload your design',
     'Analyze Design': 'Analyze Design',
@@ -103,9 +109,6 @@ const translations = {
     'Content Copied! Opening Behance...': 'Content Copied! Opening Behance...',
     'Copies description & hashtags, then opens Behance.': 'Copies description & hashtags, then opens Behance.',
     'Download Image': 'Download Image',
-    'Generate Board': 'Generate Board',
-    'Enter a theme for your inspiration board...': 'Enter a theme for your inspiration board...',
-    'Kickstart your creativity with an AI-generated mood board.': 'Kickstart your creativity with an AI-generated mood board.',
     'Style Presets': 'Style Presets',
     'No Style': 'No Style',
     'Photorealistic': 'Photorealistic',
@@ -114,6 +117,17 @@ const translations = {
     'Concept Sketch': 'Concept Sketch',
     'Error': 'Error',
     'An error occurred': 'An error occurred',
+    'Critique & Refine': 'Critique & Refine',
+    'Deconstruct & Apply Style': 'Deconstruct & Apply Style',
+    'Upload Your Design': 'Upload Your Design',
+    'Upload Reference Design': 'Upload Reference Design',
+    'Deconstruct Reference': 'Deconstruct Reference',
+    'Apply Style to My Design': 'Apply Style to My Design',
+    'Deconstructed Prompt': 'Deconstructed Prompt',
+    'Style-Applied Design': 'Style-Applied Design',
+    'Get detailed feedback and AI-driven refinements for your design.': 'Get detailed feedback and AI-driven refinements for your design.',
+    'Extract a creative prompt from a reference design or apply its style to yours.': 'Extract a creative prompt from a reference design or apply its style to yours.',
+    'Your deconstructed prompt will appear here.': 'Your deconstructed prompt will appear here.',
   },
   fr: {
     'Design Spark AI': 'Design Spark IA',
@@ -121,7 +135,6 @@ const translations = {
     'Developed by Iyed CHEBBI': 'Développé par Iyed CHEBBI',
     'Design Analysis': 'Analyse de Design',
     'Image Generation': 'Génération d\'Images',
-    'Inspiration Board': 'Tableau d\'Inspiration',
     'Behance Publisher': 'Publication Behance',
     'Upload your design': 'Téléchargez votre design',
     'Analyze Design': 'Analyser le Design',
@@ -140,7 +153,7 @@ const translations = {
     'Hashtags': 'Hashtags',
     'Copy': 'Copier',
     'Copied!': 'Copié !',
-    'Design Analysis & Refinement': 'Analyse et Affinement de Design',
+    'Design Analysis & Refinement': 'Analyse et Raffinement de Design',
     'AI Image Generation & Modification': 'Génération et Modification d\'Images par IA',
     'Professional Behance Publishing': 'Publication Professionnelle sur Behance',
     'Get expert feedback on your designs to elevate your work.': 'Obtenez des commentaires experts sur vos designs pour améliorer votre travail.',
@@ -158,9 +171,6 @@ const translations = {
     'Content Copied! Opening Behance...': 'Contenu copié ! Ouverture de Behance...',
     'Copies description & hashtags, then opens Behance.': 'Copie la description et les hashtags, puis ouvre Behance.',
     'Download Image': 'Télécharger l\'image',
-    'Generate Board': 'Générer le Tableau',
-    'Enter a theme for your inspiration board...': 'Entrez un thème pour votre tableau d\'inspiration...',
-    'Kickstart your creativity with an AI-generated mood board.': 'Lancez votre créativité avec un mood board généré par IA.',
     'Style Presets': 'Styles Prédéfinis',
     'No Style': 'Aucun Style',
     'Photorealistic': 'Photoréaliste',
@@ -168,7 +178,18 @@ const translations = {
     'Watercolor': 'Aquarelle',
     'Concept Sketch': 'Croquis Conceptuel',
     'Error': 'Erreur',
-    'An error occurred': 'Une erreur est survenue',
+    'Une erreur est survenue': 'Une erreur est survenue',
+    'Critique & Refine': 'Critique & Raffinement',
+    'Deconstruct & Apply Style': 'Déconstruire & Appliquer le Style',
+    'Upload Your Design': 'Téléchargez Votre Design',
+    'Upload Reference Design': 'Téléchargez le Design de Référence',
+    'Deconstruct Reference': 'Déconstruire la Référence',
+    'Apply Style to My Design': 'Appliquer le Style à Mon Design',
+    'Deconstructed Prompt': 'Prompt Déconstruit',
+    'Style-Applied Design': 'Design avec Style Appliqué',
+    'Get detailed feedback and AI-driven refinements for your design.': 'Obtenez des commentaires détaillés et des améliorations basées sur l\'IA pour votre design.',
+    'Extract a creative prompt from a reference design or apply its style to yours.': 'Extrayez un prompt créatif d\'un design de référence ou appliquez son style au vôtre.',
+    'Your deconstructed prompt will appear here.': 'Votre prompt déconstruit apparaîtra ici.',
   },
 };
 
@@ -239,7 +260,8 @@ const ErrorDisplay: React.FC<{ message: string, onDismiss: () => void }> = ({ me
 };
 
 // --- PAGE COMPONENTS ---
-const DesignAnalysisPage: React.FC = () => {
+
+const CritiqueAndRefineTab: React.FC = () => {
   const { t, language } = useAppContext();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -312,18 +334,13 @@ const DesignAnalysisPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      <div className="text-center md:text-left">
-        <h1 className="text-4xl font-bold text-slate-800 dark:text-white">{t('Design Analysis & Refinement')}</h1>
-        <p className="text-slate-600 dark:text-slate-300 mt-2">{t('Get expert feedback on your designs to elevate your work.')}</p>
-      </div>
-      <Card className="p-6 relative">
+      <Card className="p-6 relative mt-6">
         <div className="absolute top-4 right-4 flex space-x-2 z-10">
           {undoState && <button onClick={handleUndo} className="p-2 rounded-full bg-white/50 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" title={t('Undo')}><Icons.Undo className="w-5 h-5" /></button>}
           {imageFile && <button onClick={handleReset} className="p-2 rounded-full bg-white/50 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" title={t('Start Over')}><Icons.Refresh className="w-5 h-5" /></button>}
         </div>
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             <div className="space-y-4">
               <ImageUpload onImageSelect={handleImageSelect} previewUrl={previewUrl} text={t('Upload your design')} />
               <Button onClick={handleAnalyze} disabled={!imageFile || isLoading} isLoading={isLoading} className="w-full h-12 text-base">
@@ -332,7 +349,7 @@ const DesignAnalysisPage: React.FC = () => {
             </div>
             <div className="space-y-4">
               <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-200">{t('Analysis Results')}</h2>
-              <Card className="p-4 bg-slate-50 dark:bg-slate-900/50 min-h-[16rem] h-full max-h-[50vh] overflow-y-auto custom-scrollbar">
+              <Card className="p-4 bg-slate-50 dark:bg-slate-900/50 min-h-[16rem] h-full max-h-[50vh] md:max-h-[calc(100%-2.5rem)] overflow-y-auto custom-scrollbar">
                 {isLoading ? <div className="flex items-center justify-center h-full"><Spinner /></div> : analysis ? <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: analysis }}></div> : <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">Your analysis will appear here.</div>}
               </Card>
             </div>
@@ -368,9 +385,149 @@ const DesignAnalysisPage: React.FC = () => {
           )}
         </div>
       </Card>
+  );
+};
+
+const DeconstructAndApplyStyleTab: React.FC = () => {
+    const { t } = useAppContext();
+    const [userFile, setUserFile] = useState<File | null>(null);
+    const [userPreview, setUserPreview] = useState<string | null>(null);
+    const [refFile, setRefFile] = useState<File | null>(null);
+    const [refPreview, setRefPreview] = useState<string | null>(null);
+
+    const [isLoading, setIsLoading] = useState<'deconstruct' | 'apply' | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    
+    const [prompt, setPrompt] = useState<string>('');
+    const [styledImage, setStyledImage] = useState<string | null>(null);
+
+    const handleReset = () => {
+        setUserFile(null); setUserPreview(null);
+        setRefFile(null); setRefPreview(null);
+        setIsLoading(null); setError(null);
+        setPrompt(''); setStyledImage(null);
+    };
+
+    const handleDeconstruct = async () => {
+        if (!refFile) return;
+        setIsLoading('deconstruct'); setError(null); setPrompt(''); setStyledImage(null);
+        try {
+            const base64 = await fileToBase64(refFile);
+            const result = await deconstructDesign(base64, refFile.type);
+            setPrompt(result);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : t('An error occurred'));
+        } finally {
+            setIsLoading(null);
+        }
+    };
+
+    const handleApplyStyle = async () => {
+        if (!userFile || !refFile) return;
+        setIsLoading('apply'); setError(null); setPrompt(''); setStyledImage(null);
+        try {
+            const userBase64 = await fileToBase64(userFile);
+            const refBase64 = await fileToBase64(refFile);
+            const result = await applyStyle(userBase64, userFile.type, refBase64, refFile.type);
+            setStyledImage(`data:image/png;base64,${result}`);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : t('An error occurred'));
+        } finally {
+            setIsLoading(null);
+        }
+    };
+    
+     const handleDownload = (imageUrl: string, fileName: string) => {
+      if (!imageUrl) return;
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    return (
+        <Card className="p-6 relative mt-6">
+            {(userFile || refFile) && <button onClick={handleReset} className="absolute top-4 right-4 p-2 rounded-full bg-white/50 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10" title={t('Start Over')}><Icons.Refresh className="w-5 h-5" /></button>}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ImageUpload onImageSelect={(f) => { setUserFile(f); setUserPreview(URL.createObjectURL(f));}} previewUrl={userPreview} text={t('Upload Your Design')} />
+                <ImageUpload onImageSelect={(f) => { setRefFile(f); setRefPreview(URL.createObjectURL(f));}} previewUrl={refPreview} text={t('Upload Reference Design')} />
+            </div>
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
+                <Button onClick={handleDeconstruct} disabled={!refFile || !!isLoading} isLoading={isLoading === 'deconstruct'} className="w-full sm:w-auto h-12 text-base px-6">
+                    <Icons.Deconstruct className="w-5 h-5 mr-2" />{t('Deconstruct Reference')}
+                </Button>
+                <Button onClick={handleApplyStyle} disabled={!userFile || !refFile || !!isLoading} isLoading={isLoading === 'apply'} className="w-full sm:w-auto h-12 text-base px-6">
+                    <Icons.ApplyStyle className="w-5 h-5 mr-2" />{t('Apply Style to My Design')}
+                </Button>
+            </div>
+            {error && <div className="mt-4"><ErrorDisplay message={error} onDismiss={() => setError(null)} /></div>}
+            
+            {(isLoading === 'deconstruct' || prompt) && (
+                 <div className="border-t border-slate-200 dark:border-slate-700 pt-6 mt-6">
+                    <h2 className="text-2xl font-semibold text-center mb-4 text-slate-700 dark:text-slate-200">{t('Deconstructed Prompt')}</h2>
+                    <Card className="p-4 bg-slate-50 dark:bg-slate-900/50 min-h-[8rem] relative">
+                        {isLoading === 'deconstruct' ? <div className="flex items-center justify-center h-full"><Spinner /></div> : <p className="text-sm">{prompt}</p>}
+                         {prompt && <CopyButton textToCopy={prompt} />}
+                    </Card>
+                 </div>
+            )}
+
+            {(isLoading === 'apply' || styledImage) && (
+                <div className="border-t border-slate-200 dark:border-slate-700 pt-6 mt-6">
+                    <h2 className="text-2xl font-semibold text-center mb-4 text-slate-700 dark:text-slate-200">{t('Style-Applied Design')}</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div className="text-center">
+                            <h3 className="font-semibold mb-2">Original</h3>
+                            <img src={userPreview!} alt="Original design" className="object-contain w-full rounded-lg shadow-md bg-slate-500/10"/>
+                        </div>
+                        <div className="text-center">
+                            <h3 className="font-semibold mb-2">Updated</h3>
+                            {isLoading === 'apply' ? <Card className="bg-slate-50 dark:bg-slate-900/50 w-full aspect-square flex items-center justify-center"><Spinner /></Card>
+                            : styledImage &&
+                                <div className="space-y-2">
+                                <img src={styledImage} alt="Style-applied design" className="object-contain w-full rounded-lg shadow-md bg-slate-500/10" />
+                                <Button onClick={() => handleDownload(styledImage, 'style-applied-design.png')} className="w-full h-12"><Icons.Download className="w-5 h-5 mr-2" />{t('Download Updated Image')}</Button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            )}
+        </Card>
+    );
+};
+
+
+const DesignAnalysisPage: React.FC = () => {
+  const { t } = useAppContext();
+  const [activeTab, setActiveTab] = useState<'critique' | 'deconstruct'>('critique');
+
+  return (
+    <div className="space-y-6 animate-fade-in-up">
+      <div className="text-center md:text-left">
+        <h1 className="text-4xl font-bold text-slate-800 dark:text-white">{t('Design Analysis & Refinement')}</h1>
+        <p className="text-slate-600 dark:text-slate-300 mt-2">
+          {activeTab === 'critique' 
+            ? t('Get detailed feedback and AI-driven refinements for your design.')
+            : t('Extract a creative prompt from a reference design or apply its style to yours.')
+          }
+        </p>
+      </div>
+
+      <div className="flex justify-center">
+        <div className="flex space-x-2 bg-slate-200 dark:bg-slate-800 p-1 rounded-lg">
+          <button onClick={() => setActiveTab('critique')} className={`w-40 py-2 rounded-md transition text-sm font-medium ${activeTab === 'critique' ? 'bg-white dark:bg-slate-700 shadow' : ''}`}>{t('Critique & Refine')}</button>
+          <button onClick={() => setActiveTab('deconstruct')} className={`w-40 py-2 rounded-md transition text-sm font-medium ${activeTab === 'deconstruct' ? 'bg-white dark:bg-slate-700 shadow' : ''}`}>{t('Deconstruct & Apply Style')}</button>
+        </div>
+      </div>
+
+      {activeTab === 'critique' ? <CritiqueAndRefineTab /> : <DeconstructAndApplyStyleTab />}
     </div>
   );
 };
+
 
 const ImageGenerationPage: React.FC = () => {
     const { t } = useAppContext();
@@ -466,75 +623,6 @@ const ImageGenerationPage: React.FC = () => {
         </div>
     );
 };
-
-const InspirationBoardPage: React.FC = () => {
-    const { t } = useAppContext();
-    const [theme, setTheme] = useState('');
-    const [images, setImages] = useState<string[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const handleGenerate = async () => {
-        if (!theme) return;
-        setIsLoading(true);
-        setError(null);
-        setImages([]);
-        try {
-            const prompts = [
-                `A mood board element representing ${theme}, focusing on color palette.`,
-                `An abstract texture related to ${theme}.`,
-                `A key object or icon for the theme ${theme}.`,
-                `An inspiring landscape or scene for ${theme}.`
-            ];
-            const imagePromises = prompts.map(p => generateImage(p, 'Photorealistic'));
-            const results = await Promise.all(imagePromises);
-            setImages(results.map(base64 => `data:image/png;base64,${base64}`));
-        } catch (err) {
-            setError(err instanceof Error ? err.message : t('An error occurred'));
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <div className="space-y-6 animate-fade-in-up">
-            <div className="text-center md:text-left">
-                <h1 className="text-4xl font-bold text-slate-800 dark:text-white">{t('Inspiration Board')}</h1>
-                <p className="text-slate-600 dark:text-slate-300 mt-2">{t('Kickstart your creativity with an AI-generated mood board.')}</p>
-            </div>
-            <Card className="p-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <input
-                        type="text"
-                        value={theme}
-                        onChange={e => setTheme(e.target.value)}
-                        placeholder={t('Enter a theme for your inspiration board...')}
-                        className="flex-grow p-3 border border-slate-300 rounded-lg bg-slate-50 dark:bg-slate-900/50 dark:border-slate-600 focus:ring-2 focus:ring-primary-500 focus:outline-none transition"
-                    />
-                    <Button onClick={handleGenerate} disabled={!theme || isLoading} isLoading={isLoading} className="h-12 px-6 text-base">
-                        <Icons.Inspiration className="w-5 h-5 mr-2" /> {t('Generate Board')}
-                    </Button>
-                </div>
-                 {error && <div className="mt-4"><ErrorDisplay message={error} onDismiss={() => setError(null)} /></div>}
-            </Card>
-
-            {isLoading && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                    {[...Array(4)].map((_, i) => <Card key={i} className="aspect-square flex items-center justify-center bg-slate-500/10"><Spinner /></Card>)}
-                </div>
-            )}
-            {images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                    {images.map((img, i) => (
-                        <Card key={i} className="aspect-square overflow-hidden group">
-                           <img src={img} alt={`Inspiration for ${theme} ${i+1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                        </Card>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
 
 const BehancePublisherPage: React.FC = () => {
     const { t } = useAppContext();
@@ -665,7 +753,6 @@ const Sidebar: React.FC = () => {
             <nav className="flex-1 space-y-2 pt-4">
                 <NavItem page={Page.DesignAnalysis} icon={Icons.Design} label={t('Design Analysis')} />
                 <NavItem page={Page.ImageGeneration} icon={Icons.ImageGen} label={t('Image Generation')} />
-                <NavItem page={Page.Inspiration} icon={Icons.Inspiration} label={t('Inspiration Board')} />
                 <NavItem page={Page.BehancePublisher} icon={Icons.Behance} label={t('Behance Publisher')} />
             </nav>
             <div className="space-y-2">
@@ -684,7 +771,6 @@ const BottomNav: React.FC = () => {
     const navItems = [
       { page: Page.DesignAnalysis, icon: Icons.Design, label: t('Design Analysis') },
       { page: Page.ImageGeneration, icon: Icons.ImageGen, label: t('Image Generation') },
-      { page: Page.Inspiration, icon: Icons.Inspiration, label: t('Inspiration Board') },
       { page: Page.BehancePublisher, icon: Icons.Behance, label: t('Behance Publisher') },
     ];
     return (
@@ -796,7 +882,6 @@ function MainApp() {
         switch (page) {
             case Page.DesignAnalysis: return <DesignAnalysisPage />;
             case Page.ImageGeneration: return <ImageGenerationPage />;
-            case Page.Inspiration: return <InspirationBoardPage />;
             case Page.BehancePublisher: return <BehancePublisherPage />;
             default: return <DesignAnalysisPage />;
         }

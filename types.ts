@@ -2,7 +2,6 @@ export enum Page {
   DesignAnalysis = 'DesignAnalysis',
   ImageGeneration = 'ImageGeneration',
   BehancePublisher = 'BehancePublisher',
-  Inspiration = 'Inspiration',
 }
 
 export enum Theme {
