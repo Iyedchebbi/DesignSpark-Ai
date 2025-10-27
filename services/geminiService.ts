@@ -1,11 +1,15 @@
 import { GoogleGenAI, Modality, Type, GenerateContentResponse } from "@google/genai";
 import { BehanceContent } from '../types';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable not set. Please create a .env file and add your API key.");
+// For deployment environments where .env is not available, a fallback is used.
+// The recommended approach is to set the API_KEY as a secret in your deployment platform.
+const apiKey = process.env.API_KEY || 'AIzaSyDSPU2YkDP9Klu9_YcEghiu9gyJnFKT2p4';
+
+if (!apiKey) {
+  throw new Error("API_KEY is not set. Please add it to your .env file or configure it in your deployment environment secrets.");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 export const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
