@@ -36,13 +36,17 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
 }
 
-export const Card: React.FC<CardProps> = ({ children, className = '', ...props }) => {
+// FIX: Wrapped Card component with React.forwardRef to allow it to accept a 'ref'. This is necessary for the ImageEditionPage component which needs a reference to the Card's underlying DOM element.
+export const Card = React.forwardRef<HTMLDivElement, CardProps>(({ children, className = '', ...props }, ref) => {
   return (
-    <div className={`bg-white/70 dark:bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 dark:border-slate-700/50 overflow-hidden transition-all duration-300 hover:shadow-xl ${className}`} {...props}>
+    <div 
+      ref={ref}
+      className={`bg-white/70 dark:bg-slate-800/50 backdrop-blur-lg rounded-xl shadow-lg border border-white/20 dark:border-slate-700/50 overflow-hidden transition-all duration-300 hover:shadow-xl ${className}`} {...props}>
       {children}
     </div>
   );
-};
+});
+Card.displayName = 'Card';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;

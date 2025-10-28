@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { Page, Theme, Language, BehanceContent, BrandKitContent } from './types';
 import { analyzeDesign, generateImage, modifyImage, generateBehanceContent, fileToBase64, deconstructDesign, applyStyle, extractBrandKit } from './services/geminiService';
 import { Card, Button, Spinner, ImageUpload, Icons, Dropdown } from './components/ui';
@@ -42,7 +43,7 @@ const translations = {
     'Professional Behance Publishing': 'النشر الاحترافي على Behance',
     'Get expert feedback on your designs to elevate your work.': 'احصل على تقييم احترافي لتصاميمك لتحسين عملك.',
     'Create stunning visuals from text or modify existing images.': 'أنشئ صورًا مذهلة من النصوص أو قم بتعديل صورك الحالية.',
-    'Easily remove backgrounds or change aspect ratios of your images.': 'أزل الخلفيات بسهولة أو غيّر أبعاد صورك.',
+    'Use text prompts to edit your images, remove backgrounds, or change aspect ratios.': 'استخدم الأوصاف النصية لتعديل صورك، إزالة الخلفيات، أو تغيير الأبعاد.',
     'Instantly generate a full brand identity from just a logo.': 'أنشئ هوية علامة تجارية كاملة فورًا من مجرد شعار.',
     'Generate professional titles, descriptions, and keywords for Behance.': 'أنشئ عناوين وأوصاف وكلمات مفتاحية احترافية لمنصة Behance.',
     'Light': 'فاتح', 'Dark': 'داكن', 'System': 'النظام',
@@ -53,6 +54,7 @@ const translations = {
     'Copies description & hashtags, then opens Behance.': 'ينسخ الوصف والهاشتاجات، ثم يفتح Behance.',
     'Download Image': 'تحميل الصورة', 'Style Presets': 'أنماط جاهزة', 'No Style': 'بدون نمط',
     'Photorealistic': 'واقعي', 'Vector Art': 'فن فيكتور', 'Watercolor': 'ألوان مائية', 'Concept Sketch': 'رسم مبدئي',
+    'Minimalist': 'بسيط', '3D Render': 'تصيير ثلاثي الأبعاد', 'Retro': 'ريترو', 'Abstract': 'تجريدي', 'Line Art': 'فن الخط', 'Isometric': 'إيزومتري',
     'Error': 'خطأ', 'An error occurred': 'حدث خطأ',
     'Critique & Refine': 'النقد والتحسين', 'Deconstruct & Apply Style': 'تفكيك وتطبيق النمط',
     'Upload Your Design': 'ارفع تصميمك', 'Upload Reference Design': 'ارفع التصميم المرجعي',
@@ -68,8 +70,10 @@ const translations = {
     'Brand Kit Results': 'نتائج عدة العلامة التجارية', 'Color Palette': 'لوحة الألوان', 'Typography': 'الخطوط',
     'Primary': 'أساسي', 'Secondary': 'ثانوي', 'Accent': 'إضافي',
     'Heading Font': 'خط العناوين', 'Body Font': 'خط النصوص', 'Rationale': 'السبب',
-    // FIX: Add missing translation keys
     'Theme': 'المظهر', 'Language': 'اللغة',
+    'Text-based Editing': 'التعديل بالنص',
+    'Enter a prompt to edit your image...': 'أدخل وصفًا لتعديل صورتك...',
+    'Apply Edit': 'تطبيق التعديل',
   },
   en: {
     'Design Spark AI': 'Design Spark AI', 'Your AI partner for creative design.': 'Your AI partner for creative design.',
@@ -90,7 +94,7 @@ const translations = {
     'Professional Behance Publishing': 'Professional Behance Publishing',
     'Get expert feedback on your designs to elevate your work.': 'Get expert feedback on your designs to elevate your work.',
     'Create stunning visuals from text or modify existing images.': 'Create stunning visuals from text or modify existing images.',
-    'Easily remove backgrounds or change aspect ratios of your images.': 'Easily remove backgrounds or change aspect ratios of your images.',
+    'Use text prompts to edit your images, remove backgrounds, or change aspect ratios.': 'Use text prompts to edit your images, remove backgrounds, or change aspect ratios.',
     'Instantly generate a full brand identity from just a logo.': 'Instantly generate a full brand identity from just a logo.',
     'Generate professional titles, descriptions, and keywords for Behance.': 'Generate professional titles, descriptions, and keywords for Behance.',
     'Light': 'Light', 'Dark': 'Dark', 'System': 'System',
@@ -101,6 +105,7 @@ const translations = {
     'Copies description & hashtags, then opens Behance.': 'Copies description & hashtags, then opens Behance.',
     'Download Image': 'Download Image', 'Style Presets': 'Style Presets', 'No Style': 'No Style',
     'Photorealistic': 'Photorealistic', 'Vector Art': 'Vector Art', 'Watercolor': 'Watercolor', 'Concept Sketch': 'Concept Sketch',
+    'Minimalist': 'Minimalist', '3D Render': '3D Render', 'Retro': 'Retro', 'Abstract': 'Abstract', 'Line Art': 'Line Art', 'Isometric': 'Isometric',
     'Error': 'Error', 'An error occurred': 'An error occurred',
     'Critique & Refine': 'Critique & Refine', 'Deconstruct & Apply Style': 'Deconstruct & Apply Style',
     'Upload Your Design': 'Upload Your Design', 'Upload Reference Design': 'Upload Reference Design',
@@ -116,8 +121,10 @@ const translations = {
     'Brand Kit Results': 'Brand Kit Results', 'Color Palette': 'Color Palette', 'Typography': 'Typography',
     'Primary': 'Primary', 'Secondary': 'Secondary', 'Accent': 'Accent',
     'Heading Font': 'Heading Font', 'Body Font': 'Body Font', 'Rationale': 'Rationale',
-    // FIX: Add missing translation keys
     'Theme': 'Theme', 'Language': 'Language',
+    'Text-based Editing': 'Text-based Editing',
+    'Enter a prompt to edit your image...': 'Enter a prompt to edit your image...',
+    'Apply Edit': 'Apply Edit',
   },
   fr: {
     'Design Spark AI': 'Design Spark IA', 'Your AI partner for creative design.': 'Votre partenaire IA pour le design créatif.',
@@ -138,7 +145,7 @@ const translations = {
     'Professional Behance Publishing': 'Publication Professionnelle sur Behance',
     'Get expert feedback on your designs to elevate your work.': 'Obtenez des commentaires experts sur vos designs pour améliorer votre travail.',
     'Create stunning visuals from text or modify existing images.': 'Créez des visuels époustouflants à partir de texte ou modifiez des images existantes.',
-    'Easily remove backgrounds or change aspect ratios of your images.': 'Supprimez facilement les arrière-plans ou modifiez les formats de vos images.',
+    'Use text prompts to edit your images, remove backgrounds, or change aspect ratios.': 'Utilisez des prompts textuels pour modifier vos images, supprimer les arrière-plans ou changer les formats.',
     'Instantly generate a full brand identity from just a logo.': 'Générez instantanément une identité de marque complète à partir d\'un simple logo.',
     'Generate professional titles, descriptions, and keywords for Behance.': 'Générez des titres, des descriptions et des mots-clés professionnels pour Behance.',
     'Light': 'Clair', 'Dark': 'Sombre', 'System': 'Système',
@@ -149,6 +156,7 @@ const translations = {
     'Copies description & hashtags, then opens Behance.': 'Copie la description et les hashtags, puis ouvre Behance.',
     'Download Image': 'Télécharger l\'image', 'Style Presets': 'Styles Prédéfinis', 'No Style': 'Aucun Style',
     'Photorealistic': 'Photoréaliste', 'Vector Art': 'Art Vectoriel', 'Watercolor': 'Aquarelle', 'Concept Sketch': 'Croquis Conceptuel',
+    'Minimalist': 'Minimaliste', '3D Render': 'Rendu 3D', 'Retro': 'Rétro', 'Abstract': 'Abstrait', 'Line Art': 'Art au Trait', 'Isometric': 'Isométrique',
     'Error': 'Erreur', 'Une erreur est survenue': 'Une erreur est survenue',
     'Critique & Refine': 'Critique & Raffinement', 'Deconstruct & Apply Style': 'Déconstruire & Appliquer le Style',
     'Upload Your Design': 'Téléchargez Votre Design', 'Upload Reference Design': 'Téléchargez le Design de Référence',
@@ -159,13 +167,15 @@ const translations = {
     'Your deconstructed prompt will appear here.': 'Votre prompt déconstruit apparaîtra ici.',
     'Remove Background': 'Supprimer l\'Arrière-plan', 'Aspect Ratio': 'Format d\'Image',
     'Original': 'Original', 'Edited Result': 'Résultat Modifié', 'Your edited image will appear here.': 'Votre image modifiée apparaîtra ici.',
-    'Help & Support': 'Aide & Support', 'Contact Me': 'Me Contacter',
+    'Help & Support': 'Aide & Support', 'Me Contacter': 'Me Contacter',
     'Upload your logo': 'Téléchargez votre logo', 'Extract Brand Identity': 'Extraire l\'Identité de Marque',
     'Brand Kit Results': 'Résultats du Kit de Marque', 'Color Palette': 'Palette de Couleurs', 'Typography': 'Typographie',
     'Primary': 'Primaire', 'Secondary': 'Secondaire', 'Accent': 'Accentuation',
     'Heading Font': 'Police des Titres', 'Body Font': 'Police du Corps', 'Rationale': 'Justification',
-    // FIX: Add missing translation keys
     'Theme': 'Thème', 'Language': 'Langue',
+    'Text-based Editing': 'Édition par Texte',
+    'Enter a prompt to edit your image...': 'Entrez un prompt pour modifier votre image...',
+    'Apply Edit': 'Appliquer la Modification',
   },
 };
 
@@ -240,10 +250,10 @@ const ErrorDisplay: React.FC<{ message: string, onDismiss: () => void }> = ({ me
 const HomePage: React.FC = () => {
     const { t, setPage } = useAppContext();
     const tools = [
-        { page: Page.DesignAnalysis, icon: Icons.Analyze, title: 'Design Analysis', description: 'Get expert feedback on your designs to elevate your work.' },
         { page: Page.ImageGeneration, icon: Icons.ImageGen, title: 'Image Generation', description: 'Create stunning visuals from text or modify existing images.' },
-        { page: Page.ImageEdition, icon: Icons.Crop, title: 'Image Edition', description: 'Easily remove backgrounds or change aspect ratios of your images.' },
+        { page: Page.ImageEdition, icon: Icons.Crop, title: 'Image Edition', description: 'Use text prompts to edit your images, remove backgrounds, or change aspect ratios.' },
         { page: Page.BrandKit, icon: Icons.BrandKit, title: 'Brand Kit', description: 'Instantly generate a full brand identity from just a logo.' },
+        { page: Page.DesignAnalysis, icon: Icons.Analyze, title: 'Design Analysis', description: 'Get expert feedback on your designs to elevate your work.' },
         { page: Page.BehancePublisher, icon: Icons.Behance, title: 'Behance Publisher', description: 'Generate professional titles, descriptions, and keywords for Behance.' },
     ];
 
@@ -560,6 +570,12 @@ const ImageGenerationPage: React.FC = () => {
       { id: 'Vector Art', name: t('Vector Art') },
       { id: 'Watercolor', name: t('Watercolor') },
       { id: 'Concept Sketch', name: t('Concept Sketch') },
+      { id: 'Minimalist', name: t('Minimalist') },
+      { id: '3D Render', name: t('3D Render') },
+      { id: 'Retro', name: t('Retro') },
+      { id: 'Abstract', name: t('Abstract') },
+      { id: 'Line Art', name: t('Line Art') },
+      { id: 'Isometric', name: t('Isometric') },
     ];
 
     const handleImageSelect = (file: File) => { setImageFile(file); setPreviewUrl(URL.createObjectURL(file)); setResultImage(null); setPreviousResultImage(null); };
@@ -639,30 +655,101 @@ const ImageGenerationPage: React.FC = () => {
 const ImageEditionPage: React.FC = () => {
     const { t } = useAppContext();
     const [originalFile, setOriginalFile] = useState<File | null>(null);
-    const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null); // From AI
-    const [displayImageUrl, setDisplayImageUrl] = useState<string | null>(null); // For display
-    const [activeRatio, setActiveRatio] = useState<string>('Original');
-    const [isLoading, setIsLoading] = useState(false); // For AI background removal
+    const [originalPreviewUrl, setOriginalPreviewUrl] = useState<string | null>(null);
+    const [editedImageUrl, setEditedImageUrl] = useState<string | null>(null);
+    const [previousEditedImageUrl, setPreviousEditedImageUrl] = useState<string | null>(null);
+    const [prompt, setPrompt] = useState('');
+    const [loadingAction, setLoadingAction] = useState<'edit' | 'removeBg' | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [activeRatio, setActiveRatio] = useState<string>('Original');
 
-    // Effect to manage object URLs for the original file
+    const imageRef = useRef<HTMLImageElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [cropOverlayStyle, setCropOverlayStyle] = useState<React.CSSProperties>({ display: 'none' });
+
+    const displayImageUrl = editedImageUrl || originalPreviewUrl;
+    const isLoading = loadingAction !== null;
+
     useEffect(() => {
         if (!originalFile) {
-          setDisplayImageUrl(null);
-          return;
-        }
-        // If there's an AI-processed image, don't show the original
-        if (processedImageUrl) {
-            setDisplayImageUrl(processedImageUrl);
+            setOriginalPreviewUrl(null);
             return;
         }
-
         const objectUrl = URL.createObjectURL(originalFile);
-        setDisplayImageUrl(objectUrl);
-
+        setOriginalPreviewUrl(objectUrl);
         return () => URL.revokeObjectURL(objectUrl);
-    }, [originalFile, processedImageUrl]);
+    }, [originalFile]);
+    
+    useLayoutEffect(() => {
+        const calculateAndSetCropStyle = () => {
+            if (activeRatio === 'Original' || !imageRef.current || !containerRef.current) {
+                setCropOverlayStyle({ display: 'none' });
+                return;
+            }
 
+            const img = imageRef.current;
+            const container = containerRef.current;
+            
+            if (img.naturalWidth === 0) return;
+
+            const containerW = container.clientWidth;
+            const containerH = container.clientHeight;
+            const imgRatio = img.naturalWidth / img.naturalHeight;
+            const containerRatio = containerW / containerH;
+
+            let renderedW, renderedH;
+            if (imgRatio > containerRatio) {
+                renderedW = containerW;
+                renderedH = containerW / imgRatio;
+            } else {
+                renderedH = containerH;
+                renderedW = containerH * imgRatio;
+            }
+            
+            const [targetW, targetH] = activeRatio.split(':').map(Number);
+            const targetRatio = targetW / targetH;
+            const renderedRatio = renderedW / renderedH;
+
+            let cropW = renderedW;
+            let cropH = renderedH;
+            
+            const topOffset = (containerH - renderedH) / 2;
+            const leftOffset = (containerW - renderedW) / 2;
+
+            if (targetRatio > renderedRatio) {
+                cropH = renderedW / targetRatio;
+            } else {
+                cropW = renderedH * targetRatio;
+            }
+
+            const cropTop = topOffset + (renderedH - cropH) / 2;
+            const cropLeft = leftOffset + (renderedW - cropW) / 2;
+
+            setCropOverlayStyle({
+                position: 'absolute',
+                top: `${cropTop}px`,
+                left: `${cropLeft}px`,
+                width: `${cropW}px`,
+                height: `${cropH}px`,
+                boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+                border: '1px dashed rgba(255, 255, 255, 0.7)',
+                transition: 'all 0.3s ease',
+            });
+        };
+
+        const imgElement = imageRef.current;
+        if (imgElement) {
+            imgElement.addEventListener('load', calculateAndSetCropStyle);
+            if (imgElement.complete) calculateAndSetCropStyle();
+        }
+        
+        window.addEventListener('resize', calculateAndSetCropStyle);
+
+        return () => {
+            if (imgElement) imgElement.removeEventListener('load', calculateAndSetCropStyle);
+            window.removeEventListener('resize', calculateAndSetCropStyle);
+        };
+    }, [activeRatio, displayImageUrl]);
 
     const aspectRatios = [
         { id: 'Original', name: t('Original') },
@@ -674,22 +761,72 @@ const ImageEditionPage: React.FC = () => {
 
     const handleImageSelect = (file: File) => {
         setOriginalFile(file);
-        setProcessedImageUrl(null);
+        setEditedImageUrl(null);
+        setPreviousEditedImageUrl(null);
+        setPrompt('');
+        setLoadingAction(null);
         setError(null);
         setActiveRatio('Original');
     };
 
     const handleReset = () => {
         setOriginalFile(null);
-        setProcessedImageUrl(null);
-        setIsLoading(false);
+        setEditedImageUrl(null);
+        setPreviousEditedImageUrl(null);
+        setPrompt('');
+        setLoadingAction(null);
         setError(null);
         setActiveRatio('Original');
     };
 
+    const handleModify = async (editPrompt: string, action: 'edit' | 'removeBg') => {
+        if (!originalFile) return;
+        setLoadingAction(action);
+        setError(null);
+        if (editedImageUrl) {
+            setPreviousEditedImageUrl(editedImageUrl);
+        } else {
+            setPreviousEditedImageUrl(originalPreviewUrl);
+        }
+
+        try {
+            const imageToEditUrl = editedImageUrl || originalPreviewUrl;
+            if (!imageToEditUrl) throw new Error("No image to edit.");
+
+            // To get the latest edited state, fetch the blob and convert to base64
+            const response = await fetch(imageToEditUrl);
+            const blob = await response.blob();
+            const fileReader = new FileReader();
+            fileReader.readAsDataURL(blob);
+            fileReader.onloadend = async () => {
+                const imageBase64 = (fileReader.result as string).split(',')[1];
+                const result = await modifyImage(editPrompt, imageBase64, blob.type);
+                setEditedImageUrl(`data:image/png;base64,${result}`);
+                if (action === 'edit') setPrompt('');
+                setLoadingAction(null);
+            };
+            fileReader.onerror = () => {
+                throw new Error("Failed to read image for editing.");
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : t('An error occurred'));
+            setLoadingAction(null);
+        }
+    };
+    
+    const handleRemoveBackground = () => {
+        handleModify("Remove the background of this image, making it transparent. The main subject should be perfectly isolated.", 'removeBg');
+    };
+
+    const handleUndo = () => {
+        if (previousEditedImageUrl) {
+            setEditedImageUrl(previousEditedImageUrl === originalPreviewUrl ? null : previousEditedImageUrl);
+            setPreviousEditedImageUrl(null);
+        }
+    };
+
     const handleDownload = () => {
         if (!displayImageUrl) return;
-
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.src = displayImageUrl;
@@ -732,46 +869,45 @@ const ImageEditionPage: React.FC = () => {
         img.onerror = () => setError('Could not load image for processing.');
     };
 
-    const handleRemoveBackground = async () => {
-        if (!originalFile) return;
-        setIsLoading(true);
-        setError(null);
-        try {
-            const imageBase64 = await fileToBase64(originalFile);
-            const result = await modifyImage("Remove the background of this image, making it transparent. The main subject should be perfectly isolated.", imageBase64, originalFile.type);
-            setProcessedImageUrl(`data:image/png;base64,${result}`);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : t('An error occurred'));
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const getAspectRatioValue = (ratio: string): number | undefined => {
-        if (ratio === 'Original') return undefined;
-        const [w, h] = ratio.split(':').map(Number);
-        return w / h;
-    };
-
     return (
         <div className="space-y-6 animate-fade-in-up">
             <div className="text-center md:text-left">
                 <h1 className="text-4xl font-bold text-slate-800 dark:text-white">{t('AI-Powered Image Editing')}</h1>
-                <p className="text-slate-600 dark:text-slate-300 mt-2">{t('Easily remove backgrounds or change aspect ratios of your images.')}</p>
+                <p className="text-slate-600 dark:text-slate-300 mt-2">{t('Use text prompts to edit your images, remove backgrounds, or change aspect ratios.')}</p>
             </div>
             <Card className="p-6 relative">
-                {originalFile && <button onClick={handleReset} className="absolute top-4 right-4 p-2 rounded-full bg-white/50 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors z-10" title={t('Start Over')}><Icons.Refresh className="w-5 h-5" /></button>}
+                 <div className="absolute top-4 right-4 flex space-x-2 z-10">
+                    {previousEditedImageUrl && <button onClick={handleUndo} className="p-2 rounded-full bg-white/50 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" title={t('Undo')}><Icons.Undo className="w-5 h-5" /></button>}
+                    {originalFile && <button onClick={handleReset} className="p-2 rounded-full bg-white/50 dark:bg-slate-900/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" title={t('Start Over')}><Icons.Refresh className="w-5 h-5" /></button>}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                     <div className="space-y-4">
-                        <ImageUpload onImageSelect={handleImageSelect} previewUrl={displayImageUrl} text={t('Upload an image to edit')} />
-                        <Button onClick={handleRemoveBackground} disabled={!originalFile || isLoading} isLoading={isLoading} className="w-full h-12 text-base">
-                            <Icons.RemoveBg className="w-5 h-5 mr-2" /> {t('Remove Background')}
-                        </Button>
+                        <ImageUpload onImageSelect={handleImageSelect} previewUrl={originalPreviewUrl} text={t('Upload an image to edit')} />
+                        
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('Text-based Editing')}</label>
+                            <textarea
+                                value={prompt}
+                                onChange={(e) => setPrompt(e.target.value)}
+                                placeholder={t('Enter a prompt to edit your image...')}
+                                className="w-full p-3 h-24 border border-slate-300 rounded-lg bg-slate-50 dark:bg-slate-900/50 dark:border-slate-600 focus:ring-2 focus:ring-primary-500 focus:outline-none transition"
+                                disabled={!originalFile || isLoading}
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button onClick={() => handleModify(prompt, 'edit')} disabled={!originalFile || !prompt || isLoading} isLoading={loadingAction === 'edit'} className="h-12 text-base">
+                                    <Icons.Wand className="w-5 h-5 mr-2" /> {t('Apply Edit')}
+                                </Button>
+                                <Button onClick={handleRemoveBackground} disabled={!originalFile || isLoading} isLoading={loadingAction === 'removeBg'} variant="secondary" className="h-12 text-base">
+                                    <Icons.RemoveBg className="w-5 h-5 mr-2" /> {t('Remove Background')}
+                                </Button>
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('Aspect Ratio')}</label>
                             <div className="grid grid-cols-2 gap-2">
                                 {aspectRatios.map(ratio => (
-                                    <Button key={ratio.id} onClick={() => setActiveRatio(ratio.id)} disabled={!originalFile} variant={activeRatio === ratio.id ? 'primary' : 'secondary'} className="w-full h-12 text-base">
+                                    <Button key={ratio.id} onClick={() => setActiveRatio(ratio.id)} disabled={!originalFile} variant={activeRatio === ratio.id ? 'primary' : 'secondary'} className="h-12 text-base">
                                         <Icons.Crop className="w-5 h-5 mr-2" /> {ratio.name}
                                     </Button>
                                 ))}
@@ -780,8 +916,13 @@ const ImageEditionPage: React.FC = () => {
                     </div>
                     <div className="min-h-[20rem] flex flex-col">
                         <h3 className="font-semibold mb-2 text-center">{t('Edited Result')}</h3>
-                        <Card className="bg-slate-50 dark:bg-slate-900/50 w-full flex items-center justify-center overflow-hidden transition-all" style={{ aspectRatio: getAspectRatioValue(activeRatio) || 'auto' }}>
-                             {isLoading ? <Spinner /> : displayImageUrl ? <img src={displayImageUrl} alt="Edited result" className="object-contain w-full h-full" /> : <div className="text-slate-400 text-center p-4">{t('Your edited image will appear here.')}</div>}
+                        <Card ref={containerRef} className="bg-slate-800/20 dark:bg-slate-900/50 w-full flex items-center justify-center overflow-hidden transition-all relative p-0" style={{aspectRatio: '16 / 9'}}>
+                             {isLoading ? <Spinner /> : displayImageUrl ? (
+                                <>
+                                    <img ref={imageRef} src={displayImageUrl} alt="Edited result" className="max-w-full max-h-full object-contain" />
+                                    <div style={cropOverlayStyle} />
+                                </>
+                             ) : <div className="text-slate-400 text-center p-4">{t('Your edited image will appear here.')}</div>}
                         </Card>
                         {displayImageUrl && !isLoading && <Button onClick={handleDownload} className="w-full mt-4 h-12 text-base"><Icons.Download className="w-5 h-5 mr-2" /> {t('Download Result')}</Button>}
                     </div>
@@ -1034,10 +1175,10 @@ const Sidebar: React.FC = () => {
             </div>
             <nav className="flex-1 space-y-2 pt-4">
                 <NavItem page={Page.HomePage} icon={Icons.Home} label={t('Home')} />
-                <NavItem page={Page.DesignAnalysis} icon={Icons.Analyze} label={t('Design Analysis')} />
                 <NavItem page={Page.ImageGeneration} icon={Icons.ImageGen} label={t('Image Generation')} />
                 <NavItem page={Page.ImageEdition} icon={Icons.Crop} label={t('Image Edition')} />
                 <NavItem page={Page.BrandKit} icon={Icons.BrandKit} label={t('Brand Kit')} />
+                <NavItem page={Page.DesignAnalysis} icon={Icons.Analyze} label={t('Design Analysis')} />
                 <NavItem page={Page.BehancePublisher} icon={Icons.Behance} label={t('Behance Publisher')} />
             </nav>
             <div className="pt-2 text-center">
@@ -1051,10 +1192,10 @@ const BottomNav: React.FC = () => {
     const { t, page: currentPage, setPage } = useAppContext();
     const navItems = [
       { page: Page.HomePage, icon: Icons.Home, label: t('Home') },
-      { page: Page.DesignAnalysis, icon: Icons.Analyze, label: t('Design Analysis') },
       { page: Page.ImageGeneration, icon: Icons.ImageGen, label: t('Image Generation') },
       { page: Page.ImageEdition, icon: Icons.Crop, label: t('Image Edition') },
       { page: Page.BrandKit, icon: Icons.BrandKit, label: t('Brand Kit') },
+      { page: Page.DesignAnalysis, icon: Icons.Analyze, label: t('Design Analysis') },
       { page: Page.BehancePublisher, icon: Icons.Behance, label: t('Behance Publisher') },
     ];
     return (
