@@ -151,7 +151,7 @@ const translations = {
     'Light': 'Clair', 'Dark': 'Sombre', 'System': 'Système',
     'Update the design': 'Mettre à jour le design', 'Updated Design': 'Design Mis à Jour',
     'Download Updated Image': 'Télécharger l\'Image Mise à Jour', 'Download Edited Image': 'Télécharger l\'Image Modifiée',
-    'Download Result': 'Télécharger le Résultat', 'Start Over': 'Recommencer', 'Undo': 'Annuler',
+    'Download Result': 'Télécharger le Résultat', 'Recommencer': 'Recommencer', 'Undo': 'Annuler',
     'Share to Behance': 'Partager sur Behance', 'Content Copied! Opening Behance...': 'Contenu copié ! Ouverture de Behance...',
     'Copies description & hashtags, then opens Behance.': 'Copie la description et les hashtags, puis ouvre Behance.',
     'Download Image': 'Télécharger l\'image', 'Style Presets': 'Styles Prédéfinis', 'No Style': 'Aucun Style',
